@@ -168,13 +168,15 @@ class MapView extends React.Component<{}, State> {
 
   public render() {
     return (
-      <div>
-        <SelectionInfo code={this.state.selectedCode} />
-        <div id="map" className="map" />
-        <div>
+      <div className="container">
+        <div className="flex-item sidepanel">
           <button onClick={(e) => this.buttonPressed()}>{this.state.showNational ? 'Show state legislature districts' : 'Show national disticts'}</button><br />
           <small>Showing: {this.state.showNational ? 'Showing national congressional districts' : 'Showing state legislature districts'}</small>
         </div>
+        <div className="map flex-item">
+          <div id="map" />
+        </div>
+        <SelectionInfo code={this.state.selectedCode} />
       </div>
     );
   }

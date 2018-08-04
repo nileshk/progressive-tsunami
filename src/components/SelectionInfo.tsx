@@ -22,11 +22,13 @@ class SelectionInfo extends React.Component<Props, State> {
   public render() {
     return (
       <div>
-        {this.props.code.length > 0 ?
-          <div>
-            District: {this.props.code}
-          </div>
-          : ''}
+        <div className="flex-item sidepanel">
+          {this.props.code.length > 0 ?
+            <div>
+              District: {this.props.code}
+            </div>
+            : ''}
+        </div>
       </div>
     )
   }
