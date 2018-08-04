@@ -39,7 +39,9 @@ class MapView extends React.Component<{}, State> {
 
     const layers: Array<layer.Tile | layer.Vector> = [
       new ol.layer.Tile({
-        source: new ol.source.OSM()
+        source: new ol.source.OSM(
+          /*{ url: 'https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png'} */
+          /* { url: 'http://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' } */)
       })
     ];
 
@@ -120,7 +122,7 @@ class MapView extends React.Component<{}, State> {
     if (this.state.selectedType !== prevState.selectedType && this.state.map) {
       this.state.map.getLayers().forEach(mapLayer => {
         const visible = !('featureType' in mapLayer.getProperties())
-          || mapLayer.get('featureType') !== this.state.selectedType;
+          || mapLayer.get('featureType') === this.state.selectedType;
         mapLayer.setVisible(visible);
       });
     }
