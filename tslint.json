@@ -7,7 +7,8 @@
     "object-literal-sort-keys": false,
     "no-console": false,
     "jsx-no-lambda": false,
-    "no-unused-variable": false
+    "no-unused-variable": false,
+    "ordered-imports": false
   },
   "linterOptions": {
     "exclude": [
