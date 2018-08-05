@@ -4,6 +4,7 @@ import 'openlayers/css/ol.css'
 import * as React from 'react';
 import SelectionInfo from "./SelectionInfo";
 import * as GeoData from './GeoData';
+import * as CandidateData from './CandidateData';
 
 const NationalCongressionalDistrictType = 'national';
 const StateLegislatureDistrictType = 'state';
@@ -11,9 +12,9 @@ const CountyType = 'county';
 
 // TODO Use enum instead of this
 const featureTypes = [
+  CountyType,
   NationalCongressionalDistrictType,
-  StateLegislatureDistrictType,
-  CountyType
+  StateLegislatureDistrictType
 ];
 
 interface State {
@@ -32,7 +33,7 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = { selectedCode: '', selectedType: NationalCongressionalDistrictType };
+    this.state = { selectedCode: '', selectedType: CountyType };
   }
 
   public componentDidMount() {
@@ -57,8 +58,8 @@ class MapView extends React.Component<{}, State> {
           opacity: DEFAULT_OPACITY,
           style: this.styleFunction
         });
-        geoJSONLayer.setProperties({ featureType: NationalCongressionalDistrictType });
-        geoJSONLayer.setVisible(DEFAULT_NATIONAL_LAYER);
+        geoJSONLayer.setProperties({featureType: NationalCongressionalDistrictType});
+        geoJSONLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
       }
     }
@@ -76,8 +77,8 @@ class MapView extends React.Component<{}, State> {
           opacity: DEFAULT_OPACITY,
           style: this.styleFunction
         });
-        geoJSONLayer.setProperties({ featureType: CountyType });
-        geoJSONLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
+        geoJSONLayer.setProperties({featureType: CountyType});
+        geoJSONLayer.setVisible(DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
       }
     }
@@ -87,7 +88,7 @@ class MapView extends React.Component<{}, State> {
     if (stateDistrictsKml && stateDistrictsKml.length > 0) {
       for (const url of stateDistrictsKml) {
         const kmlSource = new ol.source.Vector({
-          format: new format.KML({ extractStyles: false }),
+          format: new format.KML({extractStyles: false}),
           url,
           strategy: ol.loadingstrategy.all
         });
@@ -96,7 +97,7 @@ class MapView extends React.Component<{}, State> {
           opacity: DEFAULT_OPACITY,
           style: this.styleFunction
         });
-        kmlLayer.setProperties({ featureType: StateLegislatureDistrictType });
+        kmlLayer.setProperties({featureType: StateLegislatureDistrictType});
         kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(kmlLayer
         );
@@ -113,9 +114,8 @@ class MapView extends React.Component<{}, State> {
     });
     map.on('singleclick', this.mapClick);
 
-    // TODO Load districts/cds/2016/FL-15/shape.geojson
-
-    this.setState({ map });
+    this.setState({map});
+    this.changeType(0);
   }
 
   public componentDidUpdate(prevProps: {}, prevState: State) {
@@ -186,14 +186,14 @@ class MapView extends React.Component<{}, State> {
     return (
       <div className="container">
         <div className="flex-item sidepanel">
-          <input type="radio" name="featureType" value={NationalCongressionalDistrictType} checked={this.state.selectedType === NationalCongressionalDistrictType} onClick={(e) => this.changeType(0)} />National Congressional<br />
-          <input type="radio" name="featureType" value={StateLegislatureDistrictType} checked={this.state.selectedType === StateLegislatureDistrictType} onClick={(e) => this.changeType(1)} />State Districts<br />
-          <input type="radio" name="featureType" value={CountyType} checked={this.state.selectedType === CountyType} onClick={(e) => this.changeType(2)} />County<br />
+          <input type="radio" name="featureType" value={CountyType} checked={this.state.selectedType === CountyType} onClick={(e) => this.changeType(0)} />County<br />
+          <input type="radio" name="featureType" value={NationalCongressionalDistrictType} checked={this.state.selectedType === NationalCongressionalDistrictType} onClick={(e) => this.changeType(1)} />National Congressional<br />
+          <input type="radio" name="featureType" value={StateLegislatureDistrictType} checked={this.state.selectedType === StateLegislatureDistrictType} onClick={(e) => this.changeType(2)} />State Districts<br />
         </div>
         <div className="map flex-item">
           <div id="map" />
         </div>
-        <SelectionInfo code={this.state.selectedCode} />
+        <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedType} />
       </div>
     );
   }
