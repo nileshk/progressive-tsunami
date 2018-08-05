@@ -5,6 +5,7 @@ import * as React from 'react';
 import SelectionInfo from "./SelectionInfo";
 import * as GeoData from './GeoData';
 import * as CandidateData from './CandidateData';
+import {LocalCandidates} from "./CandidateData";
 
 const NationalCongressionalDistrictType = 'national';
 const StateLegislatureDistrictType = 'state';
@@ -68,7 +69,7 @@ class MapView extends React.Component<{}, State> {
 
     if (countyUrls && countyUrls.length > 0) {
       for (const url of countyUrls) {
-        console.log(url);
+        // console.log(url);
         const geoJSONLayer = new ol.layer.Vector({
           source: new ol.source.Vector({
             format: new format.GeoJSON(),
@@ -133,7 +134,7 @@ class MapView extends React.Component<{}, State> {
       this.state.map.forEachFeatureAtPixel(evt.pixel,
         (feature: ol.Feature | ol.render.Feature, featureLayer: ol.layer.Layer) => {
           // do stuff here with feature
-          // console.log(feature);
+          console.log(feature);
           // console.log(featureLayer);
           /*
           if (this.state.selectedLayer) {
@@ -152,7 +153,25 @@ class MapView extends React.Component<{}, State> {
     }
   };
 
-  private static codeFromFeature(feature: ol.Feature | ol.render.Feature) {
+  private static featureLabel(feature: ol.Feature | ol.render.Feature): string {
+    const code = this.codeFromFeature(feature);
+    let countLabel: string = "";
+    if (feature != null && (('featureType' in feature.getProperties()) && code) || ('kind' in feature.getProperties())) {
+      const featureType = 'featureType' in feature.getProperties() ? feature.get('featureType') : feature.get('kind');
+      switch (featureType) {
+        case CountyType: {
+          const candidatesCount = LocalCandidates.filter(c => c.county === code).length;
+          if (candidatesCount > 0) {
+            countLabel = "\n(" + candidatesCount.toString() + ")";
+          }
+          break;
+        }
+      }
+    }
+    return code + countLabel;
+  }
+
+  private static codeFromFeature(feature: ol.Feature | ol.render.Feature): string {
     return 'Code' in feature.getProperties() ? feature.get('Code') : ('GEOID' in feature.getProperties() ? feature.get('GEOID').slice(-2).replace(/^0+/, '') : ('kind' in feature.getProperties() && feature.get('kind') === 'county' ? feature.get('name') : ''));
   }
 
@@ -167,12 +186,12 @@ class MapView extends React.Component<{}, State> {
           width: 1.25
         }),
         text: new ol.style.Text({
-          font: '12px Calibri,sans-serif',
+          font: '10px Calibri,sans-serif',
           fill: new ol.style.Fill({ color: '#000' }),
           stroke: new ol.style.Stroke({
             color: '#fff', width: 2
           }),
-          text: MapView.codeFromFeature(feature)
+          text: MapView.featureLabel(feature)
         })
       })
     ];
