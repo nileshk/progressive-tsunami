@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {CandidateInfo, LocalCandidates} from "./CandidateData";
+import {CandidateInfo, LocalCandidates, USCongressionalCandidates} from "./CandidateData";
 
 interface Props {
   code: string;
@@ -31,7 +31,8 @@ class SelectionInfo extends React.Component<Props, State> {
   }
 
   private updateCandidates = () => {
-    const candidates = this.props.featureType === 'county' ? LocalCandidates.filter(c => c.county === this.props.code) : [];
+    const candidates = this.props.featureType === 'county' ? LocalCandidates.filter(c => c.county === this.props.code)
+      : this.props.featureType === 'national' ? USCongressionalCandidates.filter(c => c.district === this.props.code) : [];
     this.setState({ candidates });
   };
 

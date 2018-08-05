@@ -8,14 +8,18 @@ import * as CandidateData from './CandidateData';
 import {LocalCandidates} from "./CandidateData";
 
 const NationalCongressionalDistrictType = 'national';
-const StateLegislatureDistrictType = 'state';
+const StateSenateDistrictType = 'statesenate';
+const StateHouseDistrictType = 'state';
 const CountyType = 'county';
+const StateWideType = 'statewide';
 
 // TODO Use enum instead of this
 const featureTypes = [
   CountyType,
   NationalCongressionalDistrictType,
-  StateLegislatureDistrictType
+  StateSenateDistrictType,
+  StateHouseDistrictType,
+  StateWideType
 ];
 
 interface State {
@@ -98,10 +102,29 @@ class MapView extends React.Component<{}, State> {
           opacity: DEFAULT_OPACITY,
           style: this.styleFunction
         });
-        kmlLayer.setProperties({featureType: StateLegislatureDistrictType});
+        kmlLayer.setProperties({featureType: StateSenateDistrictType});
         kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
-        layers.push(kmlLayer
-        );
+        layers.push(kmlLayer);
+      }
+    }
+
+    const stateHouseDistrictsKml = GeoData.STATE_HOUSE_DISTRICT_KML_URLS;
+
+    if (stateHouseDistrictsKml && stateHouseDistrictsKml.length > 0) {
+      for (const url of stateHouseDistrictsKml) {
+        const kmlSource = new ol.source.Vector({
+          format: new format.KML({extractStyles: false}),
+          url,
+          strategy: ol.loadingstrategy.all
+        });
+        const kmlLayer = new ol.layer.Vector({
+          source: kmlSource,
+          opacity: DEFAULT_OPACITY,
+          style: this.styleFunction
+        });
+        kmlLayer.setProperties({featureType: StateHouseDistrictType});
+        kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
+        layers.push(kmlLayer);
       }
     }
 
@@ -172,7 +195,9 @@ class MapView extends React.Component<{}, State> {
   }
 
   private static codeFromFeature(feature: ol.Feature | ol.render.Feature): string {
-    return 'Code' in feature.getProperties() ? feature.get('Code') : ('GEOID' in feature.getProperties() ? feature.get('GEOID').slice(-2).replace(/^0+/, '') : ('kind' in feature.getProperties() && feature.get('kind') === 'county' ? feature.get('name') : ''));
+    return 'Code' in feature.getProperties()
+      ? feature.get('Code')
+      : ('GEOID' in feature.getProperties() ? feature.get('GEOID').slice(-2).replace(/^0+/, '') : ('kind' in feature.getProperties() && feature.get('kind') === 'county' ? feature.get('name') : ''));
   }
 
   private styleFunction = (feature: ol.Feature | ol.render.Feature) => {
@@ -206,8 +231,10 @@ class MapView extends React.Component<{}, State> {
       <div className="container">
         <div className="flex-item sidepanel">
           <input type="radio" name="featureType" value={CountyType} checked={this.state.selectedType === CountyType} onClick={(e) => this.changeType(0)} />County<br />
-          <input type="radio" name="featureType" value={NationalCongressionalDistrictType} checked={this.state.selectedType === NationalCongressionalDistrictType} onClick={(e) => this.changeType(1)} />National Congressional<br />
-          <input type="radio" name="featureType" value={StateLegislatureDistrictType} checked={this.state.selectedType === StateLegislatureDistrictType} onClick={(e) => this.changeType(2)} />State Districts<br />
+          <input type="radio" name="featureType" value={NationalCongressionalDistrictType} checked={this.state.selectedType === NationalCongressionalDistrictType} onClick={(e) => this.changeType(1)} />U.S. House of Representatives<br />
+          <input type="radio" name="featureType" value={StateSenateDistrictType} checked={this.state.selectedType === StateSenateDistrictType} onClick={(e) => this.changeType(2)} />State Senate<br />
+          <input type="radio" name="featureType" value={StateHouseDistrictType} checked={this.state.selectedType === StateHouseDistrictType} onClick={(e) => this.changeType(3)} />State House<br />
+          <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)} />State-Wide<br />
         </div>
         <div className="map flex-item">
           <div id="map" />

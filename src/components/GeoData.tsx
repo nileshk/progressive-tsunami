@@ -1,6 +1,10 @@
 export const STATE_DISTRICT_KML_URLS: string[] = [
   'downloaded/census/state/fl/cb_2017_12_sldu_500k/cb_2017_12_sldu_500k_modified.kml' // Modified copy with ID's changed
-]
+];
+
+export const STATE_HOUSE_DISTRICT_KML_URLS: string[] = [
+  'downloaded/census/state/fl/cb_2017_12_sldl_500k/cb_2017_12_sldl_500k_modified.kml' // Modified copy with ID's changed
+];
 
 export const DISTRICT_URLS: string[] = [
   'downloaded/districts/cds/2016/FL-1/shape.geojson',
