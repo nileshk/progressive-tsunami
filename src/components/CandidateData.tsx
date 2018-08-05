@@ -33,5 +33,6 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Nick Guy", county: "Sarasota", position: "School Board District 1"},
   {name: "Shirley Brown", county: "Sarasota", position: "School Board District 4"},
   {name: "Ruta Jouniari", county: "Sarasota", position: "Commission District 2"},
-  {name: "William Bliss", county: "Volusia", position: "Soil & Water District 1"}
+  {name: "William Bliss", county: "Volusia", position: "Soil & Water District 1"},
+  {name: "Meghan Hamer", county: "Pasco", position: "School Board District 3"}
 ];
