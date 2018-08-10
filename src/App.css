@@ -17,10 +17,23 @@ html, body {
 }
 
 .App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
+  background: #535353;
+  padding: 1px;
   color: white;
+}
+
+@media (max-width: 768px) {
+  .App-header {
+    height: 10px;
+    font-size: 0.3em;
+  }
+}
+
+@media (min-width: 768px) {
+  .App-header {
+    height: 17px;
+    font-size: 0.8em;
+  }
 }
 
 .App-title {
@@ -48,24 +61,19 @@ html, body {
   margin: 0;
   width: 100%;
   height: 50%;
-  max-height: 768px;
 }
 
-/*
-@media (max-width: 300px) {
+@media (max-width: 2000px) {
   #map {
-    width: 300px;
-    height: 300px;
+    max-height: 600px;
   }
 }
 
-@media (min-width: 300px) {
+@media (min-width: 2000px) {
   #map {
-    width: 500px;
-    height: 300px;
+    max-height: 768px;
   }
 }
-*/
 
 /*
 @media (min-width: 300px) and (max-width: 500px) {
@@ -164,13 +172,13 @@ html, body {
   justify-content: center;
   font-size: 1em;
   font-weight: bold;
-  flex: 0 0 10px;
 }
 
 @media (max-width: 500px) {
   .page-header {
     padding-top: 0px;
     padding-bottom: 0px;
+    flex: 0 0 4px;
   }
 }
 
@@ -178,6 +186,7 @@ html, body {
   .page-header {
     padding-top: 5px;
     padding-bottom: 5px;
+    flex: 0 0 10px;
   }
 }
 
