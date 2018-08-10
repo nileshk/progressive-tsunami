@@ -325,13 +325,17 @@ class MapView extends React.Component<{}, State> {
           <header className="page-header"/>
           <div className="page-content">
             <div className="sidebar-left">
-              <input type="radio" name="featureType" value={CountyType} checked={this.state.selectedType === CountyType} onClick={(e) => this.changeType(0)}/>County<br/>
+              <input type="radio" name="featureType" value={CountyType} checked={this.state.selectedType === CountyType} onClick={(e) => this.changeType(0)}/>
+              <span className="type-selection">County</span><br/>
               <input type="radio" name="featureType" value={NationalCongressionalDistrictType} checked={this.state.selectedType === NationalCongressionalDistrictType}
-                     onClick={(e) => this.changeType(1)}/>U.S. House of Representatives<br/>
-              <input type="radio" name="featureType" value={StateSenateDistrictType} checked={this.state.selectedType === StateSenateDistrictType} onClick={(e) => this.changeType(2)}/>State
-              Senate<br/>
-              <input type="radio" name="featureType" value={StateHouseDistrictType} checked={this.state.selectedType === StateHouseDistrictType} onClick={(e) => this.changeType(3)}/>State House<br/>
-              <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>State-Wide<br/>
+                     onClick={(e) => this.changeType(1)}/>
+              <span className="type-selection">U.S. House</span><br/>
+              <input type="radio" name="featureType" value={StateSenateDistrictType} checked={this.state.selectedType === StateSenateDistrictType} onClick={(e) => this.changeType(2)}/>
+              <span className="type-selection">State Senate</span><br/>
+              <input type="radio" name="featureType" value={StateHouseDistrictType} checked={this.state.selectedType === StateHouseDistrictType} onClick={(e) => this.changeType(3)}/>
+              <span className="type-selection">State House</span><br/>
+              <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
+              <span className="type-selection">State-Wide</span><br/>
               <span className="sidebar-icon">🌊</span>
             </div>
             <div className="splitter"/>
