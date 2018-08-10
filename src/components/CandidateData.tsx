@@ -13,6 +13,10 @@ export const StateWideCandidates: CandidateInfo[] = [
 ];
 
 export const LocalCandidates: CandidateInfo[] = [
+  {name: "James 'Alex' Goins", county: "Brevard", position: "Cocoa City Council District 1", district: "1"},
+  {name: "Victoria Mitchner", county: "Brevard", position: "County Commission District 2", district: "2"},
+  {name: "Daniel Batcheldor", county: "Brevard", position: "Melbourne City Council At Large", district: ""},
+  {name: "Cheryl McDougall", county: "Brevard", position: "School Board District 2", district: "2"},
   {name: "Ryan Ross", county: "Broward", position: "Commission District 2", district: "2"},
   {name: "Beam Furr", county: "Broward", position: "Commission District 6", district: "6"},
   {name: "Nora Rupert", county: "Broward", position: "School Board District 7", district: "7"},
@@ -38,14 +42,21 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Johanna Lopez", county: "Orange", position: "Board District 2", district: "2"},
   {name: "Emmanuel Morel", county: "Palm", position: "County Commission District 2", district: "2"},
   {name: "Debra Lynne Robinson", county: "Palm", position: "County School Board District 7", district: "7"},
-  {name: "Nick Guy", county: "Sarasota", position: "School Board District 1", district: "1"},
-  {name: "Shirley Brown", county: "Sarasota", position: "School Board District 4", district: "4"},
-  {name: "Ruta Jouniari", county: "Sarasota", position: "Commission District 2", district: "2"},
-  {name: "William Bliss", county: "Volusia", position: "Soil & Water District 1", district: "1"},
   {name: "Kelly Smith", county: "Pasco", position: "County Commission District 2", district: "2"},
   {name: "Brandi Geoit", county: "Pasco", position: "County Commission District 4", district: "4"},
   {name: "Meghan Hamer", county: "Pasco", position: "School Board District 3", district: "3"},
-  {name: "Mike Aday", county: "Pasco", position: "School Board District 5", district: "5"}
+  {name: "Karen Cooper Welzel", county: "Polk", position: "County Commission District 4", district: "4"},
+  {name: "Sarah Fortney", county: "Polk", position: "School Board District 3", district: "3"},
+  {name: "Kala Tedder", county: "Polk", position: "School Board District 3", district: "3"},
+  {name: "Mike Aday", county: "Pasco", position: "School Board District 5", district: "5"},
+  {name: "Nick Guy", county: "Sarasota", position: "School Board District 1", district: "1"},
+  {name: "Shirley Brown", county: "Sarasota", position: "School Board District 4", district: "4"},
+  {name: "Ruta Jouniari", county: "Sarasota", position: "Commission District 2", district: "2"},
+  {name: "Barbara Girtman", county: "Volusia", position: "City Council District 1", district: "1"},
+  {name: "L. Ronald Durham", county: "Volusia", position: "City Council At Large", district: ""},
+  {name: "William Bliss", county: "Volusia", position: "Soil & Water District 1", district: "1"},
+  {name: "Christine Wilt", county: "Volusia", position: "Soil & Water District 3", district: "3"}
+
 ];
 
 export const USCongressionalCandidates: CandidateInfo[] = [
