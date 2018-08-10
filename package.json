@@ -3,11 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@types/openlayers": "^4.6.10",
-    "openlayers": "^4.6.5",
-    "react": "^16.4.1",
-    "react-dom": "^16.4.1",
-    "react-scripts-ts": "2.16.0"
+    "ol": "^5.1.3",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-scripts-ts": "2.17.0"
   },
   "scripts": {
     "start": "react-scripts-ts start",
@@ -19,7 +18,7 @@
     "@types/jest": "^23.3.1",
     "@types/node": "^10.5.4",
     "@types/react": "^16.4.7",
-    "@types/react-dom": "^16.0.6",
+    "@types/react-dom": "^16.0.7",
     "typescript": "^3.0.1"
   }
 }

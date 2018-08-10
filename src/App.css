@@ -1,5 +1,14 @@
+html, body {
+  background: #3f4646;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 .App {
   text-align: center;
+  background: #3f4646;
 }
 
 .App-logo {
@@ -23,20 +32,30 @@
 }
 
 @keyframes App-logo-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .container {
-    display: flex;
+  display: flex;
 }
 
 #map {
-    margin: 0;
-    width: 100%;
-    height: 100%;
+  margin: 0;
+  width: 1152px;
+  height: 500px;
 }
 
+.flex-item {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+/*
 .flex-item:nth-child(1) {
   order: 0;
   flex: 1 1 auto;
@@ -49,7 +68,6 @@
   flex: 3 1 auto;
   align-self: auto;
   margin-right: 0;
-  height: 768px;
 }
 
 .flex-item:nth-child(3) {
@@ -58,7 +76,89 @@
   align-self: auto;
   margin-left: 0;
 }
+*/
 
-.sidepanel {
-  min-width: 250px;
+.flex-master {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  flex-grow: 1;
+  height: 100%;
+  overflow: auto;
 }
+
+.page-header {
+  background: #535353;
+  color: white;
+  height: 5px;
+  justify-content: center;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  flex: 0 0 10px;
+}
+
+.page-content {
+  color: white;
+  display: flex;
+  flex-direction: row;
+  flex: 1 1 auto;
+  height: 100%;
+  overflow: auto;
+}
+
+.page-content a {
+  color: white;
+}
+
+.sidebar-left {
+  flex: 0 0 auto;
+  background: #838383;
+  padding-top: 10px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  padding-right: 0px;
+  width: 200px;
+  overflow: auto;
+  color: white;
+}
+
+.splitter {
+  flex: 0 0 auto;
+  width: 17px;
+  cursor: col-resize;
+  background: #535353;
+}
+
+.main-content {
+  flex: 1 1 auto;
+  padding: 20px;
+  width: 100%;
+  overflow-y: auto;
+}
+
+footer {
+  flex: 0 0 auto;
+
+  background: #535353;
+  color: white;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.candidate-bullet-point {
+  font-size: 2em;
+}
+
+/*
+a:link, a:hover, a:visited .candidate-bullet-point {
+  text-decoration: none;
+}
+*/
+
+.sidebar-icon {
+  font-size: 12em;
+  text-align: left;
+}
+

@@ -105,3 +105,7 @@ export const COUNTY_URLS: string[] = [
   'downloaded/world.geo.json/countries/USA/FL/Walton.geo.json',
   'downloaded/world.geo.json/countries/USA/FL/Washington.geo.json'
 ];
+
+export const STATE_URLS: string[] = [
+  'downloaded/world.geo.json/countries/USA/FL.geo.json',
+];
