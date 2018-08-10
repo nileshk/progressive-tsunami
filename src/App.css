@@ -300,6 +300,10 @@ footer {
   padding-bottom: 5px;
 }
 
+footer a {
+  color: #a0a0a0;
+}
+
 .candidate-bullet-point {
   font-size: 2em;
 }

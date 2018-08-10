@@ -81,7 +81,7 @@ class SelectionInfo extends React.Component<Props, State> {
             <div>
               <h2>{this.state.typeName}: {this.props.code}</h2>
               {this.state.candidates.length > 0 ? <p><b>Candidates endorsed by <a href="https://www.progressivefl.org/endorsements-2018/" target="_blank">Democratic Progressive Caucus of Florida</a>
-                {this.props.featureType === CountyType ? ' (Local Chapter) ' : ''}
+                {this.props.featureType === CountyType ? ' (including Local Chapter) ' : ''}
                 :</b></p> : ''}
               {this.state.candidates.map((candidate) =>
                 <p key={candidate.name}>

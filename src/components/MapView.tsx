@@ -350,7 +350,7 @@ class MapView extends React.Component<{}, State> {
             <div className="splitter"/>
             <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType}/>
           </div>
-          <footer/>
+          <footer>&copy; 2018 <a href="https://nileshk.com">Nilesh Kapadia</a></footer>
         </div>
       </div>
     );
