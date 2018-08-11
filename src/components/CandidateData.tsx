@@ -8,8 +8,8 @@ export interface CandidateInfo {
 
 export const StateWideCandidates: CandidateInfo[] = [
   {name: "Andrew Gillum", county: "", position: "Governer", district: "Florida", url: "https://andrewgillum.com/"},
-  {name: "Sean Shaw", county: "", position: "Attorney General", district: "Florida"},
-  {name: "Roy David Walker", county: "", position: "Commissioner of Agriculture and Consumer Services", district: "Florida"}
+  {name: "Sean Shaw", county: "", position: "Attorney General", district: "Florida", url: "https://seanshaw.com/"},
+  {name: "Roy David Walker", county: "", position: "Commissioner of Agriculture and Consumer Services", district: "Florida", url: "https://walkerforflorida.com/"}
 ];
 
 export const LocalCandidates: CandidateInfo[] = [
@@ -27,14 +27,14 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Otis Brown", county: "Citrus", position: "Charitable Foundation 2", district: "2"},
   {name: "Adam York", county: "Citrus", position: "School Board District 5", district: "5"},
   {name: "Cheryl Owen", county: "Clay", position: "County Commission 4", district: "4"},
-  {name: "Angela Birdsong", county: "Hillsborough", position: "Commission District 2", district: "2"},
-  {name: "Mariella Smith", county: "Hillsborough", position: "Commission District 5", district: "5"},
-  {name: "Kimberly Overman", county: "Hillsborough", position: "Commission District 7", district: "7"},
-  {name: "Sky White", county: "Hillsborough", position: "Commission District 7", district: "7"},
-  {name: "Bill Person", county: "Hillsborough", position: "School Board District 1", district: "1"},
-  {name: "Scott Hottenstein", county: "Hillsborough", position: "School Board District 6", district: "6"},
-  {name: "Robert Pechacek", county: "Hillsborough", position: "School Board District 6", district: "6"},
-  {name: "Matt Gozdor", county: "Hillsborough", position: "Soil & Water District 5", district: "5"},
+  {name: "Angela Birdsong", county: "Hillsborough", position: "Commission District 2", district: "2", url: "https://angelabirdsong.com/"},
+  {name: "Mariella Smith", county: "Hillsborough", position: "Commission District 5", district: "5", url: "https://mariellasmith.com/"},
+  {name: "Kimberly Overman", county: "Hillsborough", position: "Commission District 7", district: "7", url: "http://www.kimberlyoverman.com/"},
+  {name: "Sky White", county: "Hillsborough", position: "Commission District 7", district: "7", url: "https://www.skyuwhite.com/"},
+  {name: "Bill Person", county: "Hillsborough", position: "School Board District 1", district: "1", url: "https://www.billpersonschoolboard.org/"},
+  {name: "Scott Hottenstein", county: "Hillsborough", position: "School Board District 6", district: "6", url: "http://www.mrhforschools.com/"},
+  {name: "Robert Pechacek", county: "Hillsborough", position: "School Board District 6", district: "6", url: "https://votepechacek.org/"},
+  {name: "Matt Gozdor", county: "Hillsborough", position: "Soil & Water District 5", district: "5", url: "https://www.facebook.com/MattGozdorSoilAndWater/"},
   {name: "Jeremy Matlow", county: "Leon", position: "Tallahassee Commission District 3", district: "3"},
   {name: "Marcus Nicolas", county: "Leon", position: "School Board District 5", district: "5"},
   {name: "Dustin Daniels", county: "Leon", position: "Mayor of Tallahassee"},
@@ -65,7 +65,7 @@ export const USCongressionalCandidates: CandidateInfo[] = [
   {name: "Stephen Sevigny, MD", county: "", position: "Congressional District 6", district: "FL-06"},
   {name: "Chardo Richardson", county: "", position: "Congressional District 7", district: "FL-07"},
   {name: "Sanjay Patel", county: "", position: "Congressional District 8", district: "FL-08"},
-  {name: "Andrew Learned", county: "", position: "Congressional District 15", district: "FL-15"},
+  {name: "Andrew Learned", county: "", position: "Congressional District 15", district: "FL-15", url: "https://andrewlearned.com/"},
   {name: "Pam Keith", county: "", position: "Congressional District 18", district: "FL-18"},
   {name: "David Richardson", county: "", position: "Congressional District 27", district: "FL-27"}
 ];
@@ -100,13 +100,13 @@ export const FloridaHouseCandidates: CandidateInfo[] = [
   {name: "Carlos Guillermo Smith", county: "", position: "Florida House District 49 (incumbent)", district: "49"},
   {name: "Pamela Dirschka", county: "", position: "Florida House District 50", district: "50"},
   {name: "Phil Moore", county: "", position: "Florida House District 53", district: "53"},
-  {name: "Phil Hornback", county: "", position: "Florida House District 58", district: "58"},
-  {name: "Adam Hattersley", county: "", position: "Florida House District 59", district: "59"},
-  {name: "Debra Bellanti", county: "", position: "Florida House District 60", district: "60"},
-  {name: "Karen Skyers", county: "", position: "Florida House District 61", district: "61"},
-  {name: "Fentrice Driskell", county: "", position: "Florida House District 63", district: "63"},
-  {name: "Jennifer Webb", county: "", position: "Florida House District 69", district: "69"},
-  {name: "Vito Sheeley", county: "", position: "Florida House District 70", district: "70"},
+  {name: "Phil Hornback", county: "", position: "Florida House District 58", district: "58", url: "https://www.philfor58.com/"},
+  {name: "Adam Hattersley", county: "", position: "Florida House District 59", district: "59", url: "https://www.adamhattersley.com/"},
+  {name: "Debra Bellanti", county: "", position: "Florida House District 60", district: "60", url: "http://votebellanti.com/"},
+  {name: "Karen Skyers", county: "", position: "Florida House District 61", district: "61", url: "https://www.karenskyers.com/"},
+  {name: "Fentrice Driskell", county: "", position: "Florida House District 63", district: "63", url: "https://fentriceforflorida.com/"},
+  {name: "Jennifer Webb", county: "", position: "Florida House District 69", district: "69", url: "https://electjenniferwebb.com/"},
+  {name: "Vito Sheeley", county: "", position: "Florida House District 70", district: "70", url: "https://www.vitosheeley.com/"},
   {name: "Tracy B. Pratt", county: "", position: "Florida House District 71", district: "71"},
   {name: "Liv Coleman", county: "", position: "Florida House District 73", district: "73"},
   {name: "Edgardo Hernandez", county: "", position: "Florida House District 87", district: "87"},
