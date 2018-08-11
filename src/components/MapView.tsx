@@ -39,6 +39,7 @@ interface State {
   selectedFeatureType?: string;
   selectedLayer?: Layer;
   selectedType: string;
+  showAllCandidates: boolean;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -50,7 +51,7 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = {selectedCode: '', selectedType: CountyType};
+    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true};
   }
 
   public componentDidMount() {
@@ -199,11 +200,13 @@ class MapView extends React.Component<{}, State> {
           }
           */
           const code: string = MapView.codeFromFeature(feature);
+          const candidateCount = MapView.candidateCount(feature);
+          const showAllCandidates: boolean = false; // !(this.state.selectedType === StateWideType) && this.state.showAllCandidates && candidateCount === 0;
           // console.log('Code: ' + code);
-          this.setState({selectedCode: code, selectedFeature: feature, selectedLayer: featureLayer, selectedFeatureType: this.state.selectedType});
+          this.setState({selectedCode: code, selectedFeature: feature, selectedLayer: featureLayer, selectedFeatureType: this.state.selectedType, showAllCandidates});
           // console.log(code);
           try { // HACK Scroll down in landscape mode on clicking a feature with candidates so can see results
-            if (window.matchMedia("(orientation: landscape)").matches && (window.innerWidth < 800 || window.innerHeight < 500) && window.pageYOffset < 150 && MapView.candidateCount(feature) > 0) {
+            if (window.matchMedia("(orientation: landscape)").matches && (window.innerWidth < 800 || window.innerHeight < 500) && window.pageYOffset < 150 && candidateCount > 0) {
               console.log("Scrolling down");
               window.scrollBy(0, 150);
             }
@@ -320,8 +323,13 @@ class MapView extends React.Component<{}, State> {
   private changeType = (n: number) => {
     this.setState({selectedType: featureTypes[n]});
     if (n === 4) {
-      this.setState({ selectedCode: 'Florida', selectedFeatureType: StateWideType });
+      // State-wide type, set code to Florida and disable show all
+      this.setState({ selectedCode: 'Florida', selectedFeatureType: StateWideType, showAllCandidates: false });
     }
+  };
+
+  private showAllCandidates = () => {
+    this.setState({showAllCandidates: true});
   };
 
   public render() {
@@ -345,10 +353,13 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">State House</span><br/>
               <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
               <span className="type-selection">State-Wide</span><br/>
+              <span className="type-selection">
+                <button onClick={this.showAllCandidates}>Show All Candidates</button>
+              </span>
               <span className="sidebar-icon">🌊</span>
             </div>
             <div className="splitter"/>
-            <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType}/>
+            <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates}/>
           </div>
           <footer>&copy; 2018 <a href="https://nileshk.com">Nilesh Kapadia</a></footer>
         </div>
