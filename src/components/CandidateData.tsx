@@ -60,14 +60,14 @@ export const LocalCandidates: CandidateInfo[] = [
 ];
 
 export const USCongressionalCandidates: CandidateInfo[] = [
-  {name: "Brandon Peters", county: "", position: "Congressional District 2", district: "FL-02"},
-  {name: "Yvonne Hinson", county: "", position: "Congressional District 3", district: "FL-03"},
-  {name: "Stephen Sevigny, MD", county: "", position: "Congressional District 6", district: "FL-06"},
-  {name: "Chardo Richardson", county: "", position: "Congressional District 7", district: "FL-07"},
-  {name: "Sanjay Patel", county: "", position: "Congressional District 8", district: "FL-08"},
+  {name: "Brandon Peters", county: "", position: "Congressional District 2", district: "FL-02", url: "http://peters4congress.com/"},
+  {name: "Yvonne Hinson", county: "", position: "Congressional District 3", district: "FL-03", url: "https://www.yvonneforcongress.com/"},
+  {name: "Stephen Sevigny, MD", county: "", position: "Congressional District 6", district: "FL-06", url: "https://sevignyforcongress.com/"},
+  {name: "Chardo Richardson", county: "", position: "Congressional District 7", district: "FL-07", url: "https://chardo2018.com/"},
+  {name: "Sanjay Patel", county: "", position: "Congressional District 8", district: "FL-08", url: "https://www.votesanjaypatel.com/"},
   {name: "Andrew Learned", county: "", position: "Congressional District 15", district: "FL-15", url: "https://andrewlearned.com/"},
-  {name: "Pam Keith", county: "", position: "Congressional District 18", district: "FL-18"},
-  {name: "David Richardson", county: "", position: "Congressional District 27", district: "FL-27"}
+  {name: "Pam Keith", county: "", position: "Congressional District 18", district: "FL-18", url: "https://electpamkeith.com/"},
+  {name: "David Richardson", county: "", position: "Congressional District 27", district: "FL-27", url: "https://davidforflorida.com/"}
 ];
 
 export const FloridaSenateCandidates: CandidateInfo[] = [
