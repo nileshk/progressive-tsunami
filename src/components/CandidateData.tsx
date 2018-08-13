@@ -18,7 +18,7 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Daniel Batcheldor", county: "Brevard", position: "Melbourne City Council At Large", district: "", url: "https://danielbatcheldor.com/council/"},
   {name: "Cheryl McDougall", county: "Brevard", position: "School Board District 2", district: "2", url: "http://cherylmcdougall.com/"},
   {name: "Ryan Ross", county: "Broward", position: "Commission District 2", district: "2", url: "https://rrbroward.com/"},
-  {name: "Beam Furr", county: "Broward", position: "Commission District 6", district: "6", url: ""},
+  {name: "Beam Furr", county: "Broward", position: "Commission District 6", district: "6", url: "http://www.beamfurr.com/"},
   {name: "Nora Rupert", county: "Broward", position: "School Board District 7", district: "7", url: "https://www.norarupert.com/"},
   {name: "Joshua Simmons", county: "Broward", position: "Coral Springs Commission 4", district: "4", url: "https://www.electjoshuasimmons2018.com/"},
   {name: "Renata Castro", county: "Broward", position: "Margate Commission 3", district: "3", url: "https://www.facebook.com/Renataseat2/"},
