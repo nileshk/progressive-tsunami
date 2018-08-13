@@ -14,7 +14,8 @@ import 'ol/ol.css'
 import * as React from 'react';
 import SelectionInfo from "./SelectionInfo";
 import * as GeoData from './GeoData';
-import {FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
+import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
+import {render} from "react-dom";
 // import * as ol from "ol";
 
 export const NationalCongressionalDistrictType = 'national';
@@ -40,6 +41,11 @@ interface State {
   selectedLayer?: Layer;
   selectedType: string;
   showAllCandidates: boolean;
+  geolocationBrowserSupport: boolean;
+  showCandidatesForYourLocation: boolean;
+  coordinates?: Coordinates;
+  districtLayers: any[]; // TODO Layer type
+  candidates: CandidateInfo[];
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -51,7 +57,7 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true};
+    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], candidates: []};
   }
 
   public componentDidMount() {
@@ -63,6 +69,8 @@ class MapView extends React.Component<{}, State> {
           /* { url: 'http://{a-c}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png' } */)
       })
     ];
+
+    const districtLayers: any[] = [];
 
     const stateUrls = GeoData.STATE_URLS;
 
@@ -80,6 +88,7 @@ class MapView extends React.Component<{}, State> {
         geoJSONLayer.setProperties({featureType: StateWideType});
         geoJSONLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
+        districtLayers.push(geoJSONLayer);
       }
     }
 
@@ -99,6 +108,7 @@ class MapView extends React.Component<{}, State> {
         geoJSONLayer.setProperties({featureType: NationalCongressionalDistrictType});
         geoJSONLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
+        districtLayers.push(geoJSONLayer);
       }
     }
 
@@ -118,6 +128,7 @@ class MapView extends React.Component<{}, State> {
         geoJSONLayer.setProperties({featureType: CountyType});
         geoJSONLayer.setVisible(DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
+        districtLayers.push(geoJSONLayer);
       }
     }
 
@@ -137,6 +148,7 @@ class MapView extends React.Component<{}, State> {
         kmlLayer.setProperties({featureType: StateSenateDistrictType});
         kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(kmlLayer);
+        districtLayers.push(kmlLayer);
       }
     }
 
@@ -156,6 +168,7 @@ class MapView extends React.Component<{}, State> {
         kmlLayer.setProperties({featureType: StateHouseDistrictType});
         kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(kmlLayer);
+        districtLayers.push(kmlLayer);
       }
     }
 
@@ -170,7 +183,7 @@ class MapView extends React.Component<{}, State> {
     });
     map.on('singleclick', this.mapClick);
 
-    this.setState({map});
+    this.setState({map, districtLayers});
     this.changeType(0);
   }
 
@@ -185,6 +198,7 @@ class MapView extends React.Component<{}, State> {
   }
 
   private mapClick = (evt: any) => { // ol.events.Event) {
+    this.setState({showCandidatesForYourLocation: false});
     if (this.state.map && this.state.selectedType !== StateWideType) {
       this.state.map.forEachFeatureAtPixel(evt.pixel,
         (feature: Feature | FeatureLayer, featureLayer: Layer) => {
@@ -321,7 +335,7 @@ class MapView extends React.Component<{}, State> {
   };
 
   private changeType = (n: number) => {
-    this.setState({selectedType: featureTypes[n]});
+    this.setState({selectedType: featureTypes[n], showCandidatesForYourLocation: false, candidates: []});
     if (n === 4) {
       // State-wide type, set code to Florida and disable show all
       this.setState({ selectedCode: 'Florida', selectedFeatureType: StateWideType, showAllCandidates: false });
@@ -330,6 +344,92 @@ class MapView extends React.Component<{}, State> {
 
   private showAllCandidates = () => {
     this.setState({showAllCandidates: true});
+  };
+
+
+  private showCandidatesForYourLocation = () => {
+    if (this.state.geolocationBrowserSupport) {
+      navigator.geolocation.getCurrentPosition(position => {
+          console.log(position);
+          const coordinates = position.coords;
+          console.log(coordinates);
+          const positionFeature:any = new Feature();
+          const map = this.state.map;
+          positionFeature.setStyle(new Style({
+            image: new CircleStyle({
+              radius: 6,
+              fill: new Fill({
+                color: '#3399CC'
+              }),
+              stroke: new Stroke({
+                color: '#fff',
+                width: 2
+              })
+            })
+          }));
+
+          const xyCoordinates = fromLonLat([coordinates.longitude, coordinates.latitude]);
+          const geometry = coordinates ? new Point(xyCoordinates) : null;
+          console.log(geometry);
+          console.log(geometry.getCoordinates());
+          console.log(geometry.getType());
+          positionFeature.setGeometry(geometry);
+
+          const newLayer = new Vector({
+            source: new VectorSource({
+              features: [positionFeature]
+            }),
+            zIndex: 999,
+          });
+          newLayer.setVisible(true);
+          console.log(newLayer);
+          map.addLayer(newLayer)
+          const pixel = map.getPixelFromCoordinate(xyCoordinates);
+          let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
+          map.forEachFeatureAtPixel(pixel, (feature: Feature | FeatureLayer, featureLayer: Layer) => {
+            if (featureLayer && 'featureType' in featureLayer.getProperties()) {
+              console.log(feature);
+              const featureType: string = featureLayer.get('featureType');
+              const code: string = MapView.codeFromFeature(feature);
+              const candidateCount = MapView.candidateCount(feature);
+              console.log(code);
+              console.log(candidateCount);
+              const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+              if (filteredCandidates && filteredCandidates.length > 0) {
+                candidates = candidates.concat(filteredCandidates);
+              }
+            }
+          });
+          console.log(candidates);
+
+          // map.raiseLayer(newLayer, map.getLayers().length);
+
+          /*
+          this.state.districtLayers.map(layer => {
+            const featureType: string = layer.get('featureType');
+            switch (featureType) {
+              case CountyType: {
+                return LocalCandidates.filter(c => c.county === code).length;
+              }
+              case NationalCongressionalDistrictType: {
+                return USCongressionalCandidates.filter(c => c.district === code).length;
+              }
+              case StateSenateDistrictType: {
+                return FloridaSenateCandidates.filter(c => c.district === code).length;
+              }
+              case StateHouseDistrictType: {
+                return FloridaHouseCandidates.filter(c => c.district === code).length;
+              }
+              return null;
+            }
+          });
+*/
+          this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, coordinates, candidates});
+        },
+        error => {
+          console.log(error);
+        });
+    }
   };
 
   public render() {
@@ -353,20 +453,24 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">State House</span><br/>
               <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
               <span className="type-selection">State-Wide</span><br/>
+              {this.state.geolocationBrowserSupport ?
+                <span className="type-selection">
+                <button onClick={this.showCandidatesForYourLocation}>Your Location</button>
+              </span>
+                : ''}
               <span className="type-selection">
                 <button onClick={this.showAllCandidates}>Show All Candidates</button>
               </span>
               <span className="sidebar-icon">🌊</span>
             </div>
             <div className="splitter"/>
-            <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates}/>
+            <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates= {this.state.candidates}/>
           </div>
           <footer>&copy; 2018 <a href="https://nileshk.com">Nilesh Kapadia</a></footer>
         </div>
       </div>
     );
   }
-
 }
 
 export default MapView;
