@@ -394,15 +394,17 @@ class MapView extends React.Component<{}, State> {
           let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
           map.forEachFeatureAtPixel(pixel, (feature: Feature | FeatureLayer, featureLayer: Layer) => {
             if (featureLayer && 'featureType' in featureLayer.getProperties()) {
-              //console.log(feature);
+              console.log(feature);
               const featureType: string = featureLayer.get('featureType');
-              const code: string = MapView.codeFromFeature(feature);
-              const candidateCount = MapView.candidateCount(feature);
-              //console.log(code);
-              //console.log(candidateCount);
-              const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
-              if (filteredCandidates && filteredCandidates.length > 0) {
-                candidates = candidates.concat(filteredCandidates);
+              if (featureType !== StateWideType) {
+                const code: string = MapView.codeFromFeature(feature);
+                const candidateCount = MapView.candidateCount(feature);
+                console.log(code);
+                console.log(candidateCount);
+                const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+                if (filteredCandidates && filteredCandidates.length > 0) {
+                  candidates = candidates.concat(filteredCandidates);
+                }
               }
             }
           });

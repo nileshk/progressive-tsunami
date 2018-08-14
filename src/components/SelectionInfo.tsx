@@ -60,7 +60,7 @@ class SelectionInfo extends React.Component<Props, State> {
         ...LocalCandidates
       ];
     } else {
-      const candidatesFiltered = SelectionInfo.filterCandidates.call(this.props.featureType, this.props.code);
+      const candidatesFiltered = SelectionInfo.filterCandidates(this.props.featureType, this.props.code);
       if (candidatesFiltered) {
         candidates = candidatesFiltered;
       }
@@ -94,8 +94,11 @@ class SelectionInfo extends React.Component<Props, State> {
     const waveIcon = <span className="candidate-bullet-point">🌊 </span>;
     // {candidate.url ? <a href={candidate.url} target="_blank">{waveIcon}</a> : <span>{waveIcon}</span>}
 
-    const candidates = this.props.candidates.length > 0 ? this.props.candidates : this.state.candidates;
-
+    const candidates = (this.props.forCoordinates && this.props.candidates.length > 0) ? this.props.candidates : this.state.candidates;
+    console.log('props.candidates:');
+    console.log(this.props.candidates);
+    console.log('state.candidates:');
+    console.log(this.state.candidates);
     return (
       <div>
         <div className="main-content">
