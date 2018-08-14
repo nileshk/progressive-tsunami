@@ -11,7 +11,8 @@
     "max-classes-per-file": false,
     "member-access": false,
     "variable-name": false,
-    "no-namespace": false
+    "no-namespace": false,
+    "comment-format": false
   },
   "linterOptions": {
     "exclude": [
