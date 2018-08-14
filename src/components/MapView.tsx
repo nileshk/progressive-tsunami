@@ -46,6 +46,7 @@ interface State {
   coordinates?: Coordinates;
   districtLayers: any[]; // TODO Layer type
   candidates: CandidateInfo[];
+  locationLayer?: any;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -370,37 +371,42 @@ class MapView extends React.Component<{}, State> {
 
           const xyCoordinates = fromLonLat([coordinates.longitude, coordinates.latitude]);
           const geometry = coordinates ? new Point(xyCoordinates) : null;
-          console.log(geometry);
-          console.log(geometry.getCoordinates());
-          console.log(geometry.getType());
+          //console.log(geometry);
+          //console.log(geometry.getCoordinates());
+          //console.log(geometry.getType());
           positionFeature.setGeometry(geometry);
 
-          const newLayer = new Vector({
-            source: new VectorSource({
-              features: [positionFeature]
-            }),
-            zIndex: 999,
+          const vectorSource = new VectorSource({
+            features: [positionFeature]
           });
-          newLayer.setVisible(true);
-          console.log(newLayer);
-          map.addLayer(newLayer)
+          if (this.state.locationLayer) {
+            this.state.locationLayer.setSource(vectorSource);
+          } else {
+            const locationLayer = new Vector({
+              source: vectorSource,
+              zIndex: 999,
+            });
+            map.addLayer(locationLayer)
+            this.setState({locationLayer});
+          }
+
           const pixel = map.getPixelFromCoordinate(xyCoordinates);
           let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
           map.forEachFeatureAtPixel(pixel, (feature: Feature | FeatureLayer, featureLayer: Layer) => {
             if (featureLayer && 'featureType' in featureLayer.getProperties()) {
-              console.log(feature);
+              //console.log(feature);
               const featureType: string = featureLayer.get('featureType');
               const code: string = MapView.codeFromFeature(feature);
               const candidateCount = MapView.candidateCount(feature);
-              console.log(code);
-              console.log(candidateCount);
+              //console.log(code);
+              //console.log(candidateCount);
               const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
               if (filteredCandidates && filteredCandidates.length > 0) {
                 candidates = candidates.concat(filteredCandidates);
               }
             }
           });
-          console.log(candidates);
+          //console.log(candidates);
 
           // map.raiseLayer(newLayer, map.getLayers().length);
 
