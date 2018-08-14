@@ -390,49 +390,38 @@ class MapView extends React.Component<{}, State> {
             this.setState({locationLayer});
           }
 
-          const pixel = map.getPixelFromCoordinate(xyCoordinates);
-          let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
-          map.forEachFeatureAtPixel(pixel, (feature: Feature | FeatureLayer, featureLayer: Layer) => {
-            if (featureLayer && 'featureType' in featureLayer.getProperties()) {
-              console.log(feature);
-              const featureType: string = featureLayer.get('featureType');
-              if (featureType !== StateWideType) {
-                const code: string = MapView.codeFromFeature(feature);
-                const candidateCount = MapView.candidateCount(feature);
-                console.log(code);
-                console.log(candidateCount);
-                const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
-                if (filteredCandidates && filteredCandidates.length > 0) {
-                  candidates = candidates.concat(filteredCandidates);
+          const invisibleLayers: any[] = [];
+          this.state.districtLayers.filter(layer => ('featureType' in layer.getProperties() && layer.get('featureType') !== StateWideType)).forEach(layer => {
+            if (!layer.getVisible()) {
+              invisibleLayers.push(layer);
+            }
+            layer.setVisible(true);
+          });
+
+          setTimeout(() => {
+            const pixel = map.getPixelFromCoordinate(xyCoordinates);
+            let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
+            map.forEachFeatureAtPixel(pixel, (feature: Feature | FeatureLayer, featureLayer: Layer) => {
+              if (featureLayer && 'featureType' in featureLayer.getProperties()) {
+                console.log(feature);
+                const featureType: string = featureLayer.get('featureType');
+                if (featureType !== StateWideType) {
+                  const code: string = MapView.codeFromFeature(feature);
+                  const candidateCount = MapView.candidateCount(feature);
+                  console.log(code);
+                  console.log(candidateCount);
+                  const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+                  if (filteredCandidates && filteredCandidates.length > 0) {
+                    candidates = candidates.concat(filteredCandidates);
+                  }
                 }
               }
-            }
-          });
-          //console.log(candidates);
-
-          // map.raiseLayer(newLayer, map.getLayers().length);
-
-          /*
-          this.state.districtLayers.map(layer => {
-            const featureType: string = layer.get('featureType');
-            switch (featureType) {
-              case CountyType: {
-                return LocalCandidates.filter(c => c.county === code).length;
-              }
-              case NationalCongressionalDistrictType: {
-                return USCongressionalCandidates.filter(c => c.district === code).length;
-              }
-              case StateSenateDistrictType: {
-                return FloridaSenateCandidates.filter(c => c.district === code).length;
-              }
-              case StateHouseDistrictType: {
-                return FloridaHouseCandidates.filter(c => c.district === code).length;
-              }
-              return null;
-            }
-          });
-*/
-          this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, coordinates, candidates});
+            });
+            console.log('invisible layers:');
+            console.log(invisibleLayers);
+            invisibleLayers.forEach(layer => layer.setVisible(false));
+            this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, coordinates, candidates});
+          }, 3000);
         },
         error => {
           console.log(error);
