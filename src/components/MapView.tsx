@@ -344,7 +344,7 @@ class MapView extends React.Component<{}, State> {
   };
 
   private showAllCandidates = () => {
-    this.setState({showAllCandidates: true});
+    this.setState({showAllCandidates: true, showCandidatesForYourLocation: false});
   };
 
 
@@ -390,38 +390,23 @@ class MapView extends React.Component<{}, State> {
             this.setState({locationLayer});
           }
 
-          const invisibleLayers: any[] = [];
-          this.state.districtLayers.filter(layer => ('featureType' in layer.getProperties() && layer.get('featureType') !== StateWideType)).forEach(layer => {
-            if (!layer.getVisible()) {
-              invisibleLayers.push(layer);
-            }
-            layer.setVisible(true);
-          });
-
-          setTimeout(() => {
-            const pixel = map.getPixelFromCoordinate(xyCoordinates);
-            let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
-            map.forEachFeatureAtPixel(pixel, (feature: Feature | FeatureLayer, featureLayer: Layer) => {
-              if (featureLayer && 'featureType' in featureLayer.getProperties()) {
-                console.log(feature);
-                const featureType: string = featureLayer.get('featureType');
-                if (featureType !== StateWideType) {
-                  const code: string = MapView.codeFromFeature(feature);
-                  const candidateCount = MapView.candidateCount(feature);
-                  console.log(code);
-                  console.log(candidateCount);
-                  const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
-                  if (filteredCandidates && filteredCandidates.length > 0) {
-                    candidates = candidates.concat(filteredCandidates);
-                  }
+          let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
+          const pixel = map.getPixelFromCoordinate(xyCoordinates);
+          this.state.districtLayers.forEach(layer => {
+            const features: any[] = layer.getSource().getFeatures();
+            features.filter(feature => feature.getGeometry().intersectsCoordinate(xyCoordinates)).forEach(feature => {
+              const featureType: string = 'featureType' in layer.getProperties() ? layer.get('featureType') : ('featureType' in feature.getProperties() ? feature.get('featureType') : '');
+              if (featureType !== '' && featureType !== StateWideType) {
+                const code: string = MapView.codeFromFeature(feature);
+                const candidateCount = MapView.candidateCount(feature);
+                const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+                if (filteredCandidates && filteredCandidates.length > 0) {
+                  candidates = candidates.concat(filteredCandidates);
                 }
               }
             });
-            console.log('invisible layers:');
-            console.log(invisibleLayers);
-            invisibleLayers.forEach(layer => layer.setVisible(false));
-            this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, coordinates, candidates});
-          }, 3000);
+          });
+          this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, coordinates, candidates});
         },
         error => {
           console.log(error);
