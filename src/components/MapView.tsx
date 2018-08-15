@@ -448,7 +448,7 @@ class MapView extends React.Component<{}, State> {
               <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
               <span className="type-selection">State-Wide</span><br/>
               <input type="radio" name="featureType" value={LocationType} checked={this.state.selectedType === LocationType} onClick={(e) => this.changeType(5)}/>
-              <span className="type-selection">Specific Location</span><br/>
+              <span className="type-selection">Location</span><br/>
               {this.state.geolocationBrowserSupport ?
                 <span className="type-selection">
                 <button onClick={this.showCandidatesForYourLocation}>Your Location</button>
