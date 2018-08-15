@@ -16,6 +16,10 @@ interface State {
   typeName: string;
 }
 
+interface CandidateInfoWithType extends CandidateInfo {
+  type: string;
+}
+
 class SelectionInfo extends React.Component<Props, State> {
 
   constructor(props: Props) {
@@ -90,11 +94,82 @@ class SelectionInfo extends React.Component<Props, State> {
     return null;
   }
 
+  private candidatesWithType = (): CandidateInfoWithType[] => {
+    const gettype = (c: CandidateInfo): string => {
+      const filterFunction = (ca: CandidateInfo): boolean => {
+        return c.name === ca.name && c.position === c.position;
+      };
+
+      if (LocalCandidates.some(filterFunction)) { return 'Local'; }
+      else if (USCongressionalCandidates.some(filterFunction)) { return 'U.S. House'; }
+      else if (FloridaSenateCandidates.some(filterFunction)) { return 'FL Senate'; }
+      else if (FloridaHouseCandidates.some(filterFunction)) { return 'FL House'; }
+      else if (StateWideCandidates.some(filterFunction)) { return 'FL Statewide'; }
+      return '';
+    };
+
+    return this.getCandidates().map(c => ({...c, type: gettype(c)}));
+  };
+
+  private csvExport = (): void => {
+    const r = (csvValue: string | undefined): string => {
+      return csvValue && csvValue !== '' ? '"' + csvValue.replace(/"/g, '""') + '"' : '';
+    }
+
+    const header = ['Type', 'Name', 'Position', 'County', 'District', 'Web Site'];
+    const candidates = this.candidatesWithType();
+
+    let csvContent = ""; //"data:text/csv;charset=utf-8,";
+    csvContent += header.join(",") + "\r\n";
+    candidates.forEach(c => {
+      const row = [
+        r(c.type),
+        r(c.name),
+        r(c.position),
+        r(c.county),
+        r(c.district),
+        r(c.url)
+      ].join(',');
+      csvContent += row + "\r\n";
+    });
+    //const encodedUri = encodeURI(csvContent);
+    //console.log(encodedUri);
+
+    // The download function takes a CSV string, the filename and mimeType as parameters
+    // Scroll/look down at the bottom of this snippet to see how download is called
+    const download = (content: string, fileName: string, mimeType = 'application/octet-stream') => {
+      const a = document.createElement('a');
+
+      if (navigator.msSaveBlob) { // IE10
+        navigator.msSaveBlob(new Blob([content], {
+          type: mimeType
+        }), fileName);
+      } else if (URL && 'download' in a) { //html5 A[download]
+        a.href = URL.createObjectURL(new Blob([content], {
+          type: mimeType
+        }));
+        a.setAttribute('download', fileName);
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      } else {
+        location.href = 'data:application/octet-stream,' + encodeURIComponent(content); // only this mime type is supported
+      }
+    };
+
+    download(csvContent, 'candidatesEndorsed2018FLPrimary.csv', 'text/csv;encoding:utf-8');
+    //window.open(encodedUri)
+  };
+
+  private getCandidates() {
+    return (this.props.forCoordinates && this.props.candidates.length > 0) ? this.props.candidates : this.state.candidates;
+  }
+
   public render() {
     const waveIcon = <span className="candidate-bullet-point">🌊 </span>;
     // {candidate.url ? <a href={candidate.url} target="_blank">{waveIcon}</a> : <span>{waveIcon}</span>}
 
-    const candidates = (this.props.forCoordinates && this.props.candidates.length > 0) ? this.props.candidates : this.state.candidates;
+    const candidates = this.getCandidates();
     console.log('props.candidates:');
     console.log(this.props.candidates);
     console.log('state.candidates:');
@@ -110,6 +185,7 @@ class SelectionInfo extends React.Component<Props, State> {
                   ? <span><h2>Showing all candidates for Your Location</h2></span>
                   : <h2>{this.state.typeName}: {this.props.code}</h2>}</span>
               }
+              {candidates.length > 0 ? <span><button onClick={this.csvExport}>Download as CSV</button></span> : ''}
               {candidates.length > 0 ? <p><b>Candidates endorsed by <a href="https://www.progressivefl.org/endorsements-2018/" target="_blank">Democratic Progressive Caucus of Florida</a>
                 {this.props.featureType === CountyType || this.props.showAll ? ' (including Local Chapters) ' : ''}
                 :</b></p> : ''}
