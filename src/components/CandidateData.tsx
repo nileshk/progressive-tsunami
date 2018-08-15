@@ -7,7 +7,7 @@ export interface CandidateInfo {
 }
 
 export const StateWideCandidates: CandidateInfo[] = [
-  {name: "Andrew Gillum", county: "", position: "Governer", district: "Florida", url: "https://andrewgillum.com/"},
+  {name: "Andrew Gillum", county: "", position: "Governor", district: "Florida", url: "https://andrewgillum.com/"},
   {name: "Sean Shaw", county: "", position: "Attorney General", district: "Florida", url: "https://seanshaw.com/"},
   {name: "Roy David Walker", county: "", position: "Commissioner of Agriculture and Consumer Services", district: "Florida", url: "https://walkerforflorida.com/"}
 ];
