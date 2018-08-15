@@ -3,7 +3,7 @@ import {Feature as FeatureRender} from 'ol/render.js';
 import Geolocation from 'ol/Geolocation.js';
 import Map from 'ol/Map.js';
 import View from 'ol/View.js';
-import {fromLonLat} from 'ol/proj.js';
+import {fromLonLat, toLonLat} from 'ol/proj.js';
 import {defaults as defaultControls} from 'ol/control.js';
 import Point from 'ol/geom/Point.js';
 import {Layer, Tile, Vector, FeatureLayer} from 'ol/layer.js';
@@ -23,6 +23,7 @@ export const StateSenateDistrictType = 'statesenate';
 export const StateHouseDistrictType = 'state';
 export const CountyType = 'county';
 export const StateWideType = 'statewide';
+export const LocationType = 'location';
 
 // TODO Use enum instead of this
 const featureTypes = [
@@ -30,7 +31,8 @@ const featureTypes = [
   NationalCongressionalDistrictType,
   StateSenateDistrictType,
   StateHouseDistrictType,
-  StateWideType
+  StateWideType,
+  LocationType
 ];
 
 interface State {
@@ -43,7 +45,7 @@ interface State {
   showAllCandidates: boolean;
   geolocationBrowserSupport: boolean;
   showCandidatesForYourLocation: boolean;
-  coordinates?: Coordinates;
+  //coordinates?: Coordinates;
   districtLayers: any[]; // TODO Layer type
   candidates: CandidateInfo[];
   locationLayer?: any;
@@ -199,6 +201,12 @@ class MapView extends React.Component<{}, State> {
   }
 
   private mapClick = (evt: any) => { // ol.events.Event) {
+    if (this.state.selectedType === LocationType) {
+      // const coordinates = this.state.map.getCoordinateFromPixel(evt.pixel);
+      //console.log(evt);
+      this.showCandidatesForCoordinates(evt.coordinate, true);
+      return;
+    }
     this.setState({showCandidatesForYourLocation: false});
     if (this.state.map && this.state.selectedType !== StateWideType) {
       this.state.map.forEachFeatureAtPixel(evt.pixel,
@@ -351,68 +359,72 @@ class MapView extends React.Component<{}, State> {
   private showCandidatesForYourLocation = () => {
     if (this.state.geolocationBrowserSupport) {
       navigator.geolocation.getCurrentPosition(position => {
-          console.log(position);
+          //console.log(position);
           const coordinates = position.coords;
-          console.log(coordinates);
-          const positionFeature:any = new Feature();
-          const map = this.state.map;
-          positionFeature.setStyle(new Style({
-            image: new CircleStyle({
-              radius: 6,
-              fill: new Fill({
-                color: '#3399CC'
-              }),
-              stroke: new Stroke({
-                color: '#fff',
-                width: 2
-              })
-            })
-          }));
-
-          const xyCoordinates = fromLonLat([coordinates.longitude, coordinates.latitude]);
-          const geometry = coordinates ? new Point(xyCoordinates) : null;
-          //console.log(geometry);
-          //console.log(geometry.getCoordinates());
-          //console.log(geometry.getType());
-          positionFeature.setGeometry(geometry);
-
-          const vectorSource = new VectorSource({
-            features: [positionFeature]
-          });
-          if (this.state.locationLayer) {
-            this.state.locationLayer.setSource(vectorSource);
-          } else {
-            const locationLayer = new Vector({
-              source: vectorSource,
-              zIndex: 999,
-            });
-            map.addLayer(locationLayer)
-            this.setState({locationLayer});
-          }
-
-          let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
-          const pixel = map.getPixelFromCoordinate(xyCoordinates);
-          this.state.districtLayers.forEach(layer => {
-            const features: any[] = layer.getSource().getFeatures();
-            features.filter(feature => feature.getGeometry().intersectsCoordinate(xyCoordinates)).forEach(feature => {
-              const featureType: string = 'featureType' in layer.getProperties() ? layer.get('featureType') : ('featureType' in feature.getProperties() ? feature.get('featureType') : '');
-              if (featureType !== '' && featureType !== StateWideType) {
-                const code: string = MapView.codeFromFeature(feature);
-                const candidateCount = MapView.candidateCount(feature);
-                const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
-                if (filteredCandidates && filteredCandidates.length > 0) {
-                  candidates = candidates.concat(filteredCandidates);
-                }
-              }
-            });
-          });
-          this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, coordinates, candidates});
+          this.showCandidatesForCoordinates(coordinates);
         },
         error => {
           console.log(error);
         });
     }
   };
+
+  private showCandidatesForCoordinates = (coordinates, isXy: boolean = false) => {
+    //console.log(coordinates);
+    const map = this.state.map;
+    const xyCoordinates = isXy ? coordinates : fromLonLat([coordinates.longitude, coordinates.latitude]);
+    const geometry = coordinates ? new Point(xyCoordinates) : null;
+    //console.log(geometry);
+    //console.log(geometry.getCoordinates());
+    //console.log(geometry.getType());
+
+    const positionFeature: any = new Feature();
+    positionFeature.setStyle(new Style({
+      image: new CircleStyle({
+        radius: 6,
+        fill: new Fill({
+          color: '#3399CC'
+        }),
+        stroke: new Stroke({
+          color: '#fff',
+          width: 2
+        })
+      })
+    }));
+    positionFeature.setGeometry(geometry);
+
+    const vectorSource = new VectorSource({
+      features: [positionFeature]
+    });
+    if (this.state.locationLayer) {
+      this.state.locationLayer.setSource(vectorSource);
+    } else {
+      const locationLayer = new Vector({
+        source: vectorSource,
+        zIndex: 999,
+      });
+      map.addLayer(locationLayer)
+      this.setState({locationLayer});
+    }
+
+    let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
+    const pixel = map.getPixelFromCoordinate(xyCoordinates);
+    this.state.districtLayers.forEach(layer => {
+      const features: any[] = layer.getSource().getFeatures();
+      features.filter(feature => feature.getGeometry().intersectsCoordinate(xyCoordinates)).forEach(feature => {
+        const featureType: string = 'featureType' in layer.getProperties() ? layer.get('featureType') : ('featureType' in feature.getProperties() ? feature.get('featureType') : '');
+        if (featureType !== '' && featureType !== StateWideType) {
+          const code: string = MapView.codeFromFeature(feature);
+          const candidateCount = MapView.candidateCount(feature);
+          const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+          if (filteredCandidates && filteredCandidates.length > 0) {
+            candidates = candidates.concat(filteredCandidates);
+          }
+        }
+      });
+    });
+    this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, candidates});
+  }
 
   public render() {
     return (
@@ -435,6 +447,8 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">State House</span><br/>
               <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
               <span className="type-selection">State-Wide</span><br/>
+              <input type="radio" name="featureType" value={LocationType} checked={this.state.selectedType === LocationType} onClick={(e) => this.changeType(5)}/>
+              <span className="type-selection">Specific Location</span><br/>
               {this.state.geolocationBrowserSupport ?
                 <span className="type-selection">
                 <button onClick={this.showCandidatesForYourLocation}>Your Location</button>
