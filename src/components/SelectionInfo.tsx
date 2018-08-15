@@ -170,10 +170,6 @@ class SelectionInfo extends React.Component<Props, State> {
     // {candidate.url ? <a href={candidate.url} target="_blank">{waveIcon}</a> : <span>{waveIcon}</span>}
 
     const candidates = this.getCandidates();
-    console.log('props.candidates:');
-    console.log(this.props.candidates);
-    console.log('state.candidates:');
-    console.log(this.state.candidates);
     return (
       <div>
         <div className="main-content">
