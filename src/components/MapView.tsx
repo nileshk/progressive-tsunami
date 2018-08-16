@@ -1,21 +1,28 @@
-import Feature from 'ol/Feature.js';
-import {Feature as FeatureRender} from 'ol/render.js';
-import Geolocation from 'ol/Geolocation.js';
-import Map from 'ol/Map.js';
-import View from 'ol/View.js';
-import {fromLonLat, toLonLat} from 'ol/proj.js';
-import {defaults as defaultControls} from 'ol/control.js';
-import Point from 'ol/geom/Point.js';
-import {Layer, Tile, Vector, FeatureLayer} from 'ol/layer.js';
-import {OSM, Vector as VectorSource} from 'ol/source.js';
-import {GeoJSON, KML} from 'ol/format.js';
-import {Circle as CircleStyle, Fill, Stroke, Style, Text} from 'ol/style.js';
+import Feature from 'ol/Feature';
+import FeatureRender from 'ol/render/Feature';
+import Map from 'ol/Map';
+import View from 'ol/View';
+// @ts-ignore
+import {fromLonLat} from 'ol/proj';
+import Point from 'ol/geom/Point';
+import Layer from 'ol/layer/Layer';
+import Tile from 'ol/layer/Tile';
+import Vector from 'ol/layer/Vector';
+import OSM from 'ol/source/OSM';
+import VectorSource from 'ol/source/Vector';
+import GeoJSON from 'ol/format/GeoJSON';
+import KML from 'ol/format/KML';
+import CircleStyle from 'ol/style/Circle';
+import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import Text from 'ol/style/Text';
+import Style from 'ol/style/Style';
+
 import 'ol/ol.css'
 import * as React from 'react';
 import SelectionInfo from "./SelectionInfo";
 import * as GeoData from './GeoData';
 import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
-import {render} from "react-dom";
 // import * as ol from "ol";
 
 export const NationalCongressionalDistrictType = 'national';
@@ -38,7 +45,7 @@ const featureTypes = [
 interface State {
   map?: Map;
   selectedCode: string;
-  selectedFeature?: Feature | Feature;
+  selectedFeature?: Feature | FeatureRender;
   selectedFeatureType?: string;
   selectedLayer?: Layer;
   selectedType: string;
@@ -46,7 +53,7 @@ interface State {
   geolocationBrowserSupport: boolean;
   showCandidatesForYourLocation: boolean;
   //coordinates?: Coordinates;
-  districtLayers: any[]; // TODO Layer type
+  districtLayers: Layer[];
   candidates: CandidateInfo[];
   locationLayer?: any;
 }
@@ -179,7 +186,6 @@ class MapView extends React.Component<{}, State> {
       target: 'map',
       layers,
       view: new View({
-        // @ts-ignore
         center: fromLonLat([-82.452606, 28.3]),
         zoom: 7
       })
@@ -210,7 +216,7 @@ class MapView extends React.Component<{}, State> {
     this.setState({showCandidatesForYourLocation: false});
     if (this.state.map && this.state.selectedType !== StateWideType) {
       this.state.map.forEachFeatureAtPixel(evt.pixel,
-        (feature: Feature | FeatureLayer, featureLayer: Layer) => {
+        (feature: Feature | FeatureRender, featureLayer: Layer) => {
           // do stuff here with feature
           console.log(feature);
           // console.log(featureLayer);
@@ -369,9 +375,13 @@ class MapView extends React.Component<{}, State> {
     }
   };
 
-  private showCandidatesForCoordinates = (coordinates, isXy: boolean = false) => {
+  private showCandidatesForCoordinates = (coordinates: any, isXy: boolean = false) => {
     //console.log(coordinates);
     const map = this.state.map;
+    if (!map) {
+      console.log('map is null');
+      return;
+    }
     const xyCoordinates = isXy ? coordinates : fromLonLat([coordinates.longitude, coordinates.latitude]);
     const geometry = coordinates ? new Point(xyCoordinates) : null;
     //console.log(geometry);
@@ -410,21 +420,24 @@ class MapView extends React.Component<{}, State> {
     let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
     const pixel = map.getPixelFromCoordinate(xyCoordinates);
     this.state.districtLayers.forEach(layer => {
-      const features: any[] = layer.getSource().getFeatures();
-      features.filter(feature => feature.getGeometry().intersectsCoordinate(xyCoordinates)).forEach(feature => {
-        const featureType: string = 'featureType' in layer.getProperties() ? layer.get('featureType') : ('featureType' in feature.getProperties() ? feature.get('featureType') : '');
-        if (featureType !== '' && featureType !== StateWideType) {
-          const code: string = MapView.codeFromFeature(feature);
-          const candidateCount = MapView.candidateCount(feature);
-          const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
-          if (filteredCandidates && filteredCandidates.length > 0) {
-            candidates = candidates.concat(filteredCandidates);
+      const source = layer.getSource();
+      if (source instanceof VectorSource) {
+        const features: Feature[] = source.getFeatures();
+        features.filter(feature => feature.getGeometry().intersectsCoordinate(xyCoordinates)).forEach(feature => {
+          const featureType: string = 'featureType' in layer.getProperties() ? layer.get('featureType') : ('featureType' in feature.getProperties() ? feature.get('featureType') : '');
+          if (featureType !== '' && featureType !== StateWideType) {
+            const code: string = MapView.codeFromFeature(feature);
+            const candidateCount = MapView.candidateCount(feature);
+            const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+            if (filteredCandidates && filteredCandidates.length > 0) {
+              candidates = candidates.concat(filteredCandidates);
+            }
           }
-        }
-      });
+        });
+      }
     });
     this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, candidates});
-  }
+  };
 
   public render() {
     return (
