@@ -96,7 +96,6 @@ class MapView extends React.Component<{}, State> {
           style: this.stateStyleFunction
         });
         geoJSONLayer.setProperties({featureType: StateWideType});
-        geoJSONLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
         districtLayers.push(geoJSONLayer);
       }
@@ -116,7 +115,6 @@ class MapView extends React.Component<{}, State> {
           style: this.styleFunction
         });
         geoJSONLayer.setProperties({featureType: NationalCongressionalDistrictType});
-        geoJSONLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
         districtLayers.push(geoJSONLayer);
       }
@@ -136,7 +134,6 @@ class MapView extends React.Component<{}, State> {
           style: this.styleFunction
         });
         geoJSONLayer.setProperties({featureType: CountyType});
-        geoJSONLayer.setVisible(DEFAULT_NATIONAL_LAYER);
         layers.push(geoJSONLayer);
         districtLayers.push(geoJSONLayer);
       }
@@ -156,7 +153,6 @@ class MapView extends React.Component<{}, State> {
           style: this.styleFunction
         });
         kmlLayer.setProperties({featureType: StateSenateDistrictType});
-        kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(kmlLayer);
         districtLayers.push(kmlLayer);
       }
@@ -176,7 +172,7 @@ class MapView extends React.Component<{}, State> {
           style: this.styleFunction
         });
         kmlLayer.setProperties({featureType: StateHouseDistrictType});
-        kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
+        //kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
         layers.push(kmlLayer);
         districtLayers.push(kmlLayer);
       }
@@ -191,6 +187,14 @@ class MapView extends React.Component<{}, State> {
       })
     });
     map.on('singleclick', this.mapClick);
+
+    /*
+    HACK It appears if you don't allow a layer to visible initially, feature.getGeometry().intersectsCoordinate won't pick up features of the layer.
+    To workaround this, we allow all layers to be visible for 1/2 a second before making them invisible.
+     */
+    setTimeout(() => {
+      districtLayers.filter(layer => !('featureType' in layer.getProperties()) || layer.get('featureType') !== CountyType).forEach(layer => layer.setVisible(false));
+    }, 500);
 
     this.setState({map, districtLayers});
     this.changeType(0);
@@ -413,12 +417,12 @@ class MapView extends React.Component<{}, State> {
         source: vectorSource,
         zIndex: 999,
       });
-      map.addLayer(locationLayer)
+      map.addLayer(locationLayer);
       this.setState({locationLayer});
     }
 
     let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
-    const pixel = map.getPixelFromCoordinate(xyCoordinates);
+    //const pixel = map.getPixelFromCoordinate(xyCoordinates);
     this.state.districtLayers.forEach(layer => {
       const source = layer.getSource();
       if (source instanceof VectorSource) {
@@ -427,7 +431,7 @@ class MapView extends React.Component<{}, State> {
           const featureType: string = 'featureType' in layer.getProperties() ? layer.get('featureType') : ('featureType' in feature.getProperties() ? feature.get('featureType') : '');
           if (featureType !== '' && featureType !== StateWideType) {
             const code: string = MapView.codeFromFeature(feature);
-            const candidateCount = MapView.candidateCount(feature);
+            //const candidateCount = MapView.candidateCount(feature);
             const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
             if (filteredCandidates && filteredCandidates.length > 0) {
               candidates = candidates.concat(filteredCandidates);
