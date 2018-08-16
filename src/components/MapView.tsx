@@ -194,7 +194,7 @@ class MapView extends React.Component<{}, State> {
      */
     setTimeout(() => {
       districtLayers.filter(layer => !('featureType' in layer.getProperties()) || layer.get('featureType') !== CountyType).forEach(layer => layer.setVisible(false));
-    }, 500);
+    }, 2000);
 
     this.setState({map, districtLayers});
     this.changeType(0);
