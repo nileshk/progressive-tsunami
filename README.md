@@ -46,4 +46,4 @@ This was created by [Nilesh Kapadia](https://nileshk.com).
 
 ## License ##
 
-Donatation Page is licensed under MIT see `LICENSE` file
+Progressive Tsunami is licensed under MIT License see `LICENSE` file
