@@ -4,6 +4,8 @@ export interface CandidateInfo {
   position: string;
   district?: string;
   url?: string;
+  electionDate?: string;
+  counties?: string[];
 }
 
 export const StateWideCandidates: CandidateInfo[] = [
@@ -46,6 +48,10 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Brandi Geoit", county: "Pasco", position: "County Commission District 4", district: "4", url: "https://brandicampaign.com/"},
   {name: "Meghan Hamer", county: "Pasco", position: "School Board District 3", district: "3", url: "https://www.hamer4pascoschools3.com/"},
   {name: "Mike Aday", county: "Pasco", position: "School Board District 5", district: "5", url: "https://www.facebook.com/mikeaday4pasco/"},
+  {name: "Amy Kedron", county: "Pinellas", position: "County Commision District 6", district: "6", url: "https://amykedron.com/", electionDate: "2018-11-06"},
+  {name: "Tom McKone", county: "Pinellas", position: "East Lake Tarpon Fire Distrct", district: "2", url: "https://www.votetommckone.com/", electionDate: "2018-11-06"},
+  {name: "Jeff Larsen", county: "Pinellas", position: "School Board District 2", district: "2", url: "https://www.votejefflarsen.com/", electionDate: "2018-08-28"},
+  {name: "Nicole Carr", county: "Pinellas", position: "School Board District 3", district: "3", url: "https://nicolecarr.com/", electionDate: "2018-08-28"},
   {name: "Karen Cooper Welzel", county: "Polk", position: "County Commission District 4", district: "4", url: "https://karen4polkcounty.com/"},
   {name: "Sarah Fortney", county: "Polk", position: "School Board District 3", district: "3", url: "https://sites.google.com/view/thesarahfortneycampaign/"},
   {name: "Kala Tedder", county: "Polk", position: "School Board District 3", district: "3", url: "https://www.kalatedder.com/"},
@@ -56,7 +62,13 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Barbara Girtman", county: "Volusia", position: "City Council District 1", district: "1", url: "https://www.barbgirtman.com/"},
   {name: "L. Ronald Durham", county: "Volusia", position: "City Council At Large", district: "", url: "http://www.durham2018.com/"},
   {name: "William Bliss", county: "Volusia", position: "Soil & Water District 1", district: "1", url: "https://bliss-for-volusia.org/"},
-  {name: "Christine Wilt", county: "Volusia", position: "Soil & Water District 3", district: "3", url: ""}
+  {name: "Christine Wilt", county: "Volusia", position: "Soil & Water District 3", district: "3", url: ""},
+  {name: "Bobby Agagnina", county: "Seminole", position: "School Board District 4", district: "4", url: "https://www.agagninaforseminoleschools.com/", electionDate: "2018-11-06"},
+  {name: "Mae Smith", county: "Broward", position: "City of Lauderhill Commission Seat 2", district: "2", url: "http://www.electmaesmith.com/", electionDate: "2018-11-06"},
+  {name: "Karen Castor Dentel", county: "Orange", position: "School Board District 6", district: "6", url: "https://karen4schoolboard.com/", electionDate: "2018-08-28"},
+  {name: "Felicia Bruce", county: "St Lucie", position: "School Board", district: "", url: "https://www.feliciabruce.com/", electionDate: "2018-11-06"},
+  {name: "Sabrina Javellana", county: "Broward", position: "Hallendale Beach City Commission", district: "2", url: "https://www.facebook.com/pg/VoteSabrinaJavellana/about/?ref=page_internal", electionDate: "2018-11-06"},
+  {name: "Jane Bolin", county: "Broward", position: "Oakland Park City Commission", district: "", url: "https://www.electjanebolin.com/the-issues/", electionDate: "2018-08-28"}
 ];
 
 export const USCongressionalCandidates: CandidateInfo[] = [
@@ -81,7 +93,8 @@ export const FloridaSenateCandidates: CandidateInfo[] = [
   {name: "Olivia Babis", county: "", position: "Florida Senate District 23", district: "23", url: "https://www.oliviababis.com/"},
   {name: "Julian Santos", county: "", position: "Florida Senate District 36", district: "36", url: "https://www.santosforflorida.com/"},
   {name: "Gary Farmer", county: "", position: "Florida Senate District 34 (incumbent)", district: "34", url: "https://www.electgaryfarmer.com/"},
-  {name: "Annette Taddeo", county: "", position: "Florida Senate District 40 (incumbent)", district: "40", url: "https://annettetaddeo.com/"}
+  {name: "Annette Taddeo", county: "", position: "Florida Senate District 40 (incumbent)", district: "40", url: "https://annettetaddeo.com/"},
+  {name: "Anissa Karim", county: "", counties: ["Collier", "Hendry", "Lee"], position: "Florida Senate District 28", district: "28", url: "https://www.karimforsenate.com/", electionDate: "2018-11-06"}
 ];
 
 export const FloridaHouseCandidates: CandidateInfo[] = [
@@ -118,5 +131,16 @@ export const FloridaHouseCandidates: CandidateInfo[] = [
   {name: "Dotie Joseph", county: "", position: "Florida House District 108", district: "108", url: "http://dotiejoseph.com/"},
   {name: "Cedric McMinn", county: "", position: "Florida House District 109", district: "109", url: "http://electcedricmcminn.com/"},
   {name: "Kubs Lalchandani", county: "", position: "Florida House District 113", district: "113", url: "https://kubsforflorida.com/"},
-  {name: "Steve Friedman", county: "", position: "Florida House District 120", district: "120", url: "https://www.captainsteve4florida.com/"}
+  {name: "Steve Friedman", county: "", position: "Florida House District 120", district: "120", url: "https://www.captainsteve4florida.com/"},
+  {name: "Katie Tripp", county: "", counties: ["Volusia"], position: "Florida House District 25", district: "25", url: "https://trippfor25.com/", electionDate:"2018-11-06"},
+  {name: "Debra A Kaplan", county: "", counties: ["Lake", "Orange"], position: "Florida House District 31", district: "31", url: "https://www.debraakaplan.com/"},
+  {name: "Amy Mercaco", county: "", counties: ["Orange"], position: "Florida House District 48", district: "48", url: "http://amymercado.com/", electionDate:"2018-11-06"},
+  {name: "Seeta Durjan Begui", county: "", counties: ["Brevard"], position: "Florida House District 52", district: "52", url: "http://www.seeta4change.com/", electionDate:"2018-11-06"},
+  {name: "Parisima Taeb", county: "", counties: ["Lee"], position: "Florida House District 78", district: "78", url: "https://www.parisimataeb.com/", electionDate:"2018-11-06"},
+  {name: "Jennifer Boddicker", county: "", counties: ["Hendry", "Collier"], position: "Florida House District 80", district: "80", url: "https://www.voteboddicker.com/", electionDate:"2018-11-06"},
+  {name: "Matt Theobald", county: "", counties: ["Matin", "St Lucie"], position: "Florida House District 83", district: "83", url: "http://www.mattforfloridahouse.com/", electionDate:"2018-11-06"},
+  {name: "Ellen Baker", county: "", counties: ["Palm Beach"], position: "Florida House District 85", district: "85", url: "https://www.electellenbaker.com/", electionDate:"2018-11-06"},
+  {name: "Emma Elizabeth Collum", county: "", counties: ["Broward"], position: "Florida House District 93", district: "93", url: "https://www.emmacollum.com/", electionDate:"2018-11-06"},
+  {name: "Dr. Jeffrey Solomon", county: "", counties: ["Miami-Dade"], position: "Florida House District 115", district: "115", url: "https://www.docsolomonforhouse.com/", electionDate:"2018-08-28"},
+
 ];
