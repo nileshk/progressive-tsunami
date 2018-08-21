@@ -68,7 +68,8 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Karen Castor Dentel", county: "Orange", position: "School Board District 6", district: "6", url: "https://karen4schoolboard.com/", electionDate: "2018-08-28"},
   {name: "Felicia Bruce", county: "St Lucie", position: "School Board", district: "", url: "https://www.feliciabruce.com/", electionDate: "2018-11-06"},
   {name: "Sabrina Javellana", county: "Broward", position: "Hallendale Beach City Commission", district: "2", url: "https://www.facebook.com/pg/VoteSabrinaJavellana/about/?ref=page_internal", electionDate: "2018-11-06"},
-  {name: "Jane Bolin", county: "Broward", position: "Oakland Park City Commission", district: "", url: "https://www.electjanebolin.com/the-issues/", electionDate: "2018-08-28"}
+  {name: "Jane Bolin", county: "Broward", position: "Oakland Park City Commission", district: "", url: "https://www.electjanebolin.com/the-issues/", electionDate: "2018-08-28"},
+  {name: "Rich Dally", county: "Broward", position: "Hallendale Beach City Commission", district: "2", url: "", electionDate: "2018-11-06"}  
 ];
 
 export const USCongressionalCandidates: CandidateInfo[] = [
