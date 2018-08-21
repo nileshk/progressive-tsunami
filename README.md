@@ -26,10 +26,6 @@ The boundary files are not included in this repository.  They must be downloaded
 
 * For both census KML files, modify all `id` attributes for `Placemark` elements to something unique.  I used the number from the `name` tags, but maybe the district name would have been a better choice.
 
-* Download Florida Congressional Districts by County for Florida from: [https://www2.census.gov/geo/relfiles/cdsld13/12/co_cd_12.txt](https://www2.census.gov/geo/relfiles/cdsld13/12/co_cd_12.txt)
-
-~~https://www2.census.gov/geo/relfiles/cdsld16/12/co_cd_delim_12.txt~~
-
 **TODO** Automate this process of downloading and modifying these files 
 
 #### Development ####

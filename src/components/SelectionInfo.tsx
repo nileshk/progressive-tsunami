@@ -107,12 +107,20 @@ class SelectionInfo extends React.Component<Props, State> {
           candidates = candidates.concat(cwt(StateWideCandidates));
         }
         candidates = candidates.concat(cwt(LocalCandidates.filter(c => c.county === code)));
-        const countyInfo = CountyInformation.find(ci => ci.county === code);
-        if (countyInfo) {
-          countyInfo.unitedStateHouseDistricts.forEach(districtNo => {
-            candidates = candidates.concat(cwt(USCongressionalCandidates
-              .filter(c => districtNo && c.district && c.district === 'FL-' + lpad(districtNo.toString(), '0', 2))));
-          });
+        if (aggregateCounty) {
+          const countyInfo = CountyInformation.find(ci => ci.county === code);
+          if (countyInfo) {
+            countyInfo.unitedStateHouseDistricts.forEach(districtNo => {
+              candidates = candidates.concat(cwt(USCongressionalCandidates
+                .filter(c => districtNo && c.district && c.district === 'FL-' + lpad(districtNo.toString(), '0', 2))));
+            });
+            countyInfo.stateSenateDistricts.forEach(districtNo => {
+              candidates = candidates.concat(cwt(FloridaSenateCandidates.filter(c => districtNo && c.district && c.district === districtNo.toString())));
+            })
+            countyInfo.stateHouseDistricts.forEach(districtNo => {
+              candidates = candidates.concat(cwt(FloridaHouseCandidates.filter(c => districtNo && c.district && c.district === districtNo.toString())));
+            })
+          }
         }
         return candidates;
       }
@@ -232,9 +240,6 @@ class SelectionInfo extends React.Component<Props, State> {
                     {candidate.position}</span>
                 </p>
               )}
-              {this.props.featureType === CountyType && !this.props.showAll ?
-                <p><i><b>Also view State Senate and State House races.  This is not currently included in County results!</b></i></p>
-                : ''}
             </div>
             : ''}
         </div>
