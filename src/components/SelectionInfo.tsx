@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
 import {CountyType, NationalCongressionalDistrictType, StateHouseDistrictType, StateSenateDistrictType, StateWideType} from "./MapView";
+import {CountyInformation} from "./CountyDistricts";
 
 interface Props {
   code: string;
@@ -73,22 +74,59 @@ class SelectionInfo extends React.Component<Props, State> {
   };
 
 
-  public static filterCandidates(featureType: string, code: string): CandidateInfo[] | null {
+  public static filterCandidates(featureType: string, code: string, addStatewide: boolean = true, aggregateCounty: boolean = true): CandidateInfoWithType[] | null {
+    const gettype = (c: CandidateInfo): string => {
+      const filterFunction = (ca: CandidateInfo): boolean => {
+        return c.name === ca.name && c.position === c.position;
+      };
+
+      if (LocalCandidates.some(filterFunction)) { return  CountyType; }
+      else if (USCongressionalCandidates.some(filterFunction)) { return NationalCongressionalDistrictType; }
+      else if (FloridaSenateCandidates.some(filterFunction)) { return StateSenateDistrictType; }
+      else if (FloridaHouseCandidates.some(filterFunction)) { return StateHouseDistrictType; }
+      else if (StateWideCandidates.some(filterFunction)) { return StateWideType; }
+      return '';
+    };
+
+    const cwt = (candidates: CandidateInfo[]): CandidateInfoWithType[] => {
+      return candidates.map(candidate => ({...candidate, type: gettype(candidate)}));
+    };
+
+    const lpad = (strVal: string, padString: string, length: number): string => {
+      let str = strVal;
+      while (str.length < length) {
+        str = padString + str;
+      }
+      return str;
+    };
+
     switch (featureType) {
       case CountyType: {
-        return LocalCandidates.filter(c => c.county === code);
+        let candidates: CandidateInfoWithType[] = [];
+        if (addStatewide && !candidates.some(ci => StateWideCandidates.some(swci => ci.name === swci.name && ci.position === swci.position))) {
+          candidates = candidates.concat(cwt(StateWideCandidates));
+        }
+        candidates = candidates.concat(cwt(LocalCandidates.filter(c => c.county === code)));
+        const countyInfo = CountyInformation.find(ci => ci.county === code);
+        if (countyInfo) {
+          countyInfo.unitedStateHouseDistricts.forEach(districtNo => {
+            candidates = candidates.concat(cwt(USCongressionalCandidates
+              .filter(c => districtNo && c.district && c.district === 'FL-' + lpad(districtNo.toString(), '0', 2))));
+          });
+        }
+        return candidates;
       }
       case NationalCongressionalDistrictType: {
-        return USCongressionalCandidates.filter(c => c.district === code);
+        return cwt(USCongressionalCandidates.filter(c => c.district === code));
       }
       case StateSenateDistrictType: {
-        return FloridaSenateCandidates.filter(c => c.district === code);
+        return cwt(FloridaSenateCandidates.filter(c => c.district === code));
       }
       case StateHouseDistrictType: {
-        return FloridaHouseCandidates.filter(c => c.district === code);
+        return cwt(FloridaHouseCandidates.filter(c => c.district === code));
       }
       case StateWideType: {
-        return StateWideCandidates;
+        return cwt(StateWideCandidates);
       }
     }
     return null;
@@ -194,6 +232,9 @@ class SelectionInfo extends React.Component<Props, State> {
                     {candidate.position}</span>
                 </p>
               )}
+              {this.props.featureType === CountyType && !this.props.showAll ?
+                <p><i><b>Also view State Senate and State House races.  This is not currently included in County results!</b></i></p>
+                : ''}
             </div>
             : ''}
         </div>

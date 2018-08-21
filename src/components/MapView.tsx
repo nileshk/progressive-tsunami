@@ -421,7 +421,7 @@ class MapView extends React.Component<{}, State> {
       this.setState({locationLayer});
     }
 
-    let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida') || [];
+    let candidates: CandidateInfo[] = SelectionInfo.filterCandidates(StateWideType, 'Florida', false, false) || [];
     //const pixel = map.getPixelFromCoordinate(xyCoordinates);
     this.state.districtLayers.forEach(layer => {
       const source = layer.getSource();
@@ -432,7 +432,7 @@ class MapView extends React.Component<{}, State> {
           if (featureType !== '' && featureType !== StateWideType) {
             const code: string = MapView.codeFromFeature(feature);
             //const candidateCount = MapView.candidateCount(feature);
-            const filteredCandidates = SelectionInfo.filterCandidates(featureType, code);
+            const filteredCandidates = SelectionInfo.filterCandidates(featureType, code, false, false);
             if (filteredCandidates && filteredCandidates.length > 0) {
               candidates = candidates.concat(filteredCandidates);
             }

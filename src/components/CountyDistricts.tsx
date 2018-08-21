@@ -1,0 +1,81 @@
+// FLORIDA CONGRESSIONAL DISTRICTS BY COUNTY
+// County / Congressional District
+// From: https://www2.census.gov/geo/relfiles/cdsld13/12/co_cd_12.txt
+// See also: https://www2.census.gov/geo/relfiles/cdsld16/12/co_cd_delim_12.txt
+
+export interface CountyInfo {
+  county: string;
+  unitedStateHouseDistricts: number[];
+  // TODO State Senate
+  // TODO State House
+}
+
+export const CountyInformation: CountyInfo[] = [
+  {county: 'Alachua', unitedStateHouseDistricts: [3, 5]},
+  {county: 'Baker', unitedStateHouseDistricts: [4]},
+  {county: 'Bay', unitedStateHouseDistricts: [2]},
+  {county: 'Bradford', unitedStateHouseDistricts: [3]},
+  {county: 'Brevard', unitedStateHouseDistricts: [8]},
+  {county: 'Broward', unitedStateHouseDistricts: [20, 21, 22, 23, 24, 25]},
+  {county: 'Calhoun', unitedStateHouseDistricts: [2]},
+  {county: 'Charlotte', unitedStateHouseDistricts: [17]},
+  {county: 'Citrus', unitedStateHouseDistricts: [11]},
+  {county: 'Clay', unitedStateHouseDistricts: [3, 5]},
+  {county: 'Collier', unitedStateHouseDistricts: [19, 25]},
+  {county: 'Columbia', unitedStateHouseDistricts: [3]},
+  {county: 'DeSoto', unitedStateHouseDistricts: [17]},
+  {county: 'Dixie', unitedStateHouseDistricts: [3]},
+  {county: 'Duval', unitedStateHouseDistricts: [4, 5]},
+  {county: 'Escambia', unitedStateHouseDistricts: [1]},
+  {county: 'Flagler', unitedStateHouseDistricts: [6]},
+  {county: 'Franklin', unitedStateHouseDistricts: [2]},
+  {county: 'Gadsden', unitedStateHouseDistricts: [2]},
+  {county: 'Gilchrist', unitedStateHouseDistricts: [3]},
+  {county: 'Glades', unitedStateHouseDistricts: [17]},
+  {county: 'Gulf', unitedStateHouseDistricts: [2]},
+  {county: 'Hamilton', unitedStateHouseDistricts: [3]},
+  {county: 'Hardee', unitedStateHouseDistricts: [17]},
+  {county: 'Hendry', unitedStateHouseDistricts: [20, 25]},
+  {county: 'Hernando', unitedStateHouseDistricts: [11]},
+  {county: 'Highlands', unitedStateHouseDistricts: [17]},
+  {county: 'Hillsborough', unitedStateHouseDistricts: [12, 14, 15, 17]},
+  {county: 'Holmes', unitedStateHouseDistricts: [1, 2]},
+  {county: 'Indian', unitedStateHouseDistricts: [8]},
+  {county: 'Jackson', unitedStateHouseDistricts: [2]},
+  {county: 'Jefferson', unitedStateHouseDistricts: [2]},
+  {county: 'Lafayette', unitedStateHouseDistricts: [3]},
+  {county: 'Lake', unitedStateHouseDistricts: [5, 10, 11]},
+  {county: 'Lee', unitedStateHouseDistricts: [17, 19]},
+  {county: 'Leon', unitedStateHouseDistricts: [2]},
+  {county: 'Levy', unitedStateHouseDistricts: [3]},
+  {county: 'Liberty', unitedStateHouseDistricts: [2]},
+  {county: 'Madison', unitedStateHouseDistricts: [2, 3]},
+  {county: 'Manatee', unitedStateHouseDistricts: [16, 17]},
+  {county: 'Marion', unitedStateHouseDistricts: [3, 5, 11]},
+  {county: 'Martin', unitedStateHouseDistricts: [18]},
+  {county: 'Miami', unitedStateHouseDistricts: [23, 24, 25, 26, 27]},
+  {county: 'Monroe', unitedStateHouseDistricts: [26]},
+  {county: 'Nassau', unitedStateHouseDistricts: [4]},
+  {county: 'Okaloosa', unitedStateHouseDistricts: [1]},
+  {county: 'Okeechobee', unitedStateHouseDistricts: [17]},
+  {county: 'Orange', unitedStateHouseDistricts: [5, 7, 8, 9, 10]},
+  {county: 'Osceola', unitedStateHouseDistricts: [9]},
+  {county: 'Palm', unitedStateHouseDistricts: [18, 20, 21, 22]},
+  {county: 'Pasco', unitedStateHouseDistricts: [12]},
+  {county: 'Pinellas', unitedStateHouseDistricts: [12, 13, 14]},
+  {county: 'Polk', unitedStateHouseDistricts: [9, 10, 15, 17]},
+  {county: 'Putnam', unitedStateHouseDistricts: [5, 6]},
+  {county: 'Santa', unitedStateHouseDistricts: [1]},
+  {county: 'Sarasota', unitedStateHouseDistricts: [16]},
+  {county: 'Seminole', unitedStateHouseDistricts: [5, 7]},
+  {county: 'St', unitedStateHouseDistricts: [6]},
+  {county: 'St', unitedStateHouseDistricts: [18]},
+  {county: 'Sumter', unitedStateHouseDistricts: [11]},
+  {county: 'Suwannee', unitedStateHouseDistricts: [3]},
+  {county: 'Taylor', unitedStateHouseDistricts: [2]},
+  {county: 'Union', unitedStateHouseDistricts: [3]},
+  {county: 'Volusia', unitedStateHouseDistricts: [6, 7]},
+  {county: 'Wakulla', unitedStateHouseDistricts: [2]},
+  {county: 'Walton', unitedStateHouseDistricts: [1]},
+  {county: 'Washington', unitedStateHouseDistricts: [2]}
+];
