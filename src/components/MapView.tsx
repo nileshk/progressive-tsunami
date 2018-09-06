@@ -198,6 +198,10 @@ class MapView extends React.Component<{}, State> {
 
     this.setState({map, districtLayers});
     this.changeType(0);
+
+    window.onresize = () => {
+      setTimeout(() => map.updateSize(), 200);
+    };
   }
 
   public componentDidUpdate(prevProps: {}, prevState: State) {
