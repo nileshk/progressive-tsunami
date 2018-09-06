@@ -242,15 +242,15 @@ class MapView extends React.Component<{}, State> {
           // console.log('Code: ' + code);
           this.setState({selectedCode: code, selectedFeature: feature, selectedLayer: featureLayer, selectedFeatureType: this.state.selectedType, showAllCandidates});
           // console.log(code);
-          try { // HACK Scroll down in landscape mode on clicking a feature with candidates so can see results
-            if (window.matchMedia("(orientation: landscape)").matches && (window.innerWidth < 800 || window.innerHeight < 500) && window.pageYOffset < 150 && candidateCount > 0) {
-              console.log("Scrolling down");
-              window.scrollBy(0, 150);
-            }
-          } catch (e) {
-            console.log("Error in trying to scroll down");
-            console.log(e);
-          }
+        //   try { // HACK Scroll down in landscape mode on clicking a feature with candidates so can see results
+        //     if (window.matchMedia("(orientation: landscape)").matches && (window.innerWidth < 800 || window.innerHeight < 500) && window.pageYOffset < 150 && candidateCount > 0) {
+        //       console.log("Scrolling down");
+        //       window.scrollBy(0, 150);
+        //     }
+        //   } catch (e) {
+        //     console.log("Error in trying to scroll down");
+        //     console.log(e);
+        //   }
           return [feature, featureLayer];
         });
     }
