@@ -82,101 +82,32 @@ class MapView extends React.Component<{}, State> {
 
     const districtLayers: any[] = [];
 
-    const stateUrls = GeoData.STATE_URLS;
+    const makeLayer = (urls: string[], districtType: string, sourceFormat: any, styleFunction: (feature: (Feature | FeatureRender)) => Style[], addToDistrictLayers = true): void => {
+      if (urls && urls.length > 0) {
+        for (const url of urls) {
 
-    if (stateUrls && stateUrls.length > 0) {
-      for (const url of stateUrls) {
-
-        const geoJSONLayer = new Vector({
-          source: new VectorSource({
-            format: new GeoJSON(),
-            url
-          }),
-          opacity: DEFAULT_OPACITY,
-          style: this.stateStyleFunction
-        });
-        geoJSONLayer.setProperties({featureType: StateWideType});
-        layers.push(geoJSONLayer);
-        districtLayers.push(geoJSONLayer);
+          const geoJSONLayer = new Vector({
+            source: new VectorSource({
+              format: sourceFormat,
+              url
+            }),
+            opacity: DEFAULT_OPACITY,
+            style: styleFunction
+          });
+          geoJSONLayer.setProperties({featureType: districtType});
+          layers.push(geoJSONLayer);
+          if (addToDistrictLayers) {
+            districtLayers.push(geoJSONLayer);
+          }
+        }
       }
-    }
+    };
 
-    const districtUrls = GeoData.DISTRICT_URLS;
-
-    if (districtUrls && districtUrls.length > 0) {
-      for (const url of districtUrls) {
-
-        const geoJSONLayer = new Vector({
-          source: new VectorSource({
-            format: new GeoJSON(),
-            url
-          }),
-          opacity: DEFAULT_OPACITY,
-          style: this.styleFunction
-        });
-        geoJSONLayer.setProperties({featureType: NationalCongressionalDistrictType});
-        layers.push(geoJSONLayer);
-        districtLayers.push(geoJSONLayer);
-      }
-    }
-
-    const countyUrls = GeoData.COUNTY_URLS;
-
-    if (countyUrls && countyUrls.length > 0) {
-      for (const url of countyUrls) {
-        // console.log(url);
-        const geoJSONLayer = new Vector({
-          source: new VectorSource({
-            format: new GeoJSON(),
-            url
-          }),
-          opacity: DEFAULT_OPACITY,
-          style: this.styleFunction
-        });
-        geoJSONLayer.setProperties({featureType: CountyType});
-        layers.push(geoJSONLayer);
-        districtLayers.push(geoJSONLayer);
-      }
-    }
-
-    const stateDistrictsKml = GeoData.STATE_DISTRICT_KML_URLS;
-
-    if (stateDistrictsKml && stateDistrictsKml.length > 0) {
-      for (const url of stateDistrictsKml) {
-        const kmlSource = new VectorSource({
-          format: new KML({extractStyles: false}),
-          url
-        });
-        const kmlLayer = new Vector({
-          source: kmlSource,
-          opacity: DEFAULT_OPACITY,
-          style: this.styleFunction
-        });
-        kmlLayer.setProperties({featureType: StateSenateDistrictType});
-        layers.push(kmlLayer);
-        districtLayers.push(kmlLayer);
-      }
-    }
-
-    const stateHouseDistrictsKml = GeoData.STATE_HOUSE_DISTRICT_KML_URLS;
-
-    if (stateHouseDistrictsKml && stateHouseDistrictsKml.length > 0) {
-      for (const url of stateHouseDistrictsKml) {
-        const kmlSource = new VectorSource({
-          format: new KML({extractStyles: false}),
-          url
-        });
-        const kmlLayer = new Vector({
-          source: kmlSource,
-          opacity: DEFAULT_OPACITY,
-          style: this.styleFunction
-        });
-        kmlLayer.setProperties({featureType: StateHouseDistrictType});
-        //kmlLayer.setVisible(!DEFAULT_NATIONAL_LAYER);
-        layers.push(kmlLayer);
-        districtLayers.push(kmlLayer);
-      }
-    }
+    makeLayer(GeoData.STATE_URLS, StateWideType, new GeoJSON(), this.stateStyleFunction);
+    makeLayer(GeoData.DISTRICT_URLS, NationalCongressionalDistrictType, new GeoJSON(), this.styleFunction);
+    makeLayer(GeoData.COUNTY_URLS, CountyType, new GeoJSON(), this.styleFunction);
+    makeLayer(GeoData.STATE_DISTRICT_KML_URLS, StateSenateDistrictType, new KML({extractStyles: false}), this.styleFunction);
+    makeLayer(GeoData.STATE_HOUSE_DISTRICT_KML_URLS, StateHouseDistrictType, new KML({extractStyles: false}), this.styleFunction);
 
     const map: Map = new Map({
       target: 'map',
