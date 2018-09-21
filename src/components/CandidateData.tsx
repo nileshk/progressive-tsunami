@@ -40,6 +40,7 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Jeremy Matlow", county: "Leon", position: "Tallahassee Commission District 3", district: "3", url: "https://www.jeremymatlow.com/"},
   // {name: "Marcus Nicolas", county: "Leon", position: "School Board District 5", district: "5", url: "https://www.vote4nicolas.com/"},
   {name: "Dustin Daniels", county: "Leon", position: "Mayor of Tallahassee", url: "https://www.dustindaniels.com/"},
+  {name: "Diane Williams Cox", county: "Leon", position: "Tallahassee City Commission Seat 5", district: "5", url: "https://www.diannewilliamscox.com/"},
   // {name: "Nicolette Springer", county: "Orange", position: "Commission District 4", district: "4", url: "https://www.nicolettespringer.com/"},
   {name: "Johanna Lopez", county: "Orange", position: "Board District 2", district: "2", url: "https://www.votejohannalopez.com/"},
   // {name: "Emmanuel Morel", county: "Palm", position: "County Commission District 2", district: "2", url: "https://www.votemorel.com/"},
@@ -69,7 +70,8 @@ export const LocalCandidates: CandidateInfo[] = [
   {name: "Felicia Bruce", county: "St Lucie", position: "School Board", district: "", url: "https://www.feliciabruce.com/", electionDate: "2018-11-06"},
   {name: "Sabrina Javellana", county: "Broward", position: "Hallendale Beach City Commission", district: "2", url: "https://www.facebook.com/pg/VoteSabrinaJavellana/about/?ref=page_internal", electionDate: "2018-11-06"},
   {name: "Jane Bolin", county: "Broward", position: "Oakland Park City Commission", district: "", url: "https://www.electjanebolin.com/the-issues/", electionDate: "2018-08-28"},
-  {name: "Rich Dally", county: "Broward", position: "Hallendale Beach City Commission", district: "2", url: "", electionDate: "2018-11-06"}  
+  {name: "Rich Dally", county: "Broward", position: "Hallendale Beach City Commission", district: "2", url: "", electionDate: "2018-11-06"},
+  {name: "James Cook", county: "Duval", position: "Jacksonville Soil and Water Group 5", district: "5", url: "https://cookforsoilandwater.com/"}
 ];
 
 export const USCongressionalCandidates: CandidateInfo[] = [
@@ -77,7 +79,8 @@ export const USCongressionalCandidates: CandidateInfo[] = [
   {name: "Yvonne Hinson", county: "", position: "Congressional District 3", district: "FL-03", url: "https://www.yvonneforcongress.com/"},
   // {name: "Stephen Sevigny, MD", county: "", position: "Congressional District 6", district: "FL-06", url: "https://sevignyforcongress.com/"},
   // {name: "Chardo Richardson", county: "", position: "Congressional District 7", district: "FL-07", url: "https://chardo2018.com/"},
-  {name: "Sanjay Patel", county: "", position: "Congressional District 8", district: "FL-08", url: "https://www.votesanjaypatel.com/"}
+  {name: "Sanjay Patel", county: "", position: "Congressional District 8", district: "FL-08", url: "https://www.votesanjaypatel.com/"},
+  {name: "Dana Cottrell", county: "", position: "Congressional District 11", district: "FL-11", url: "https://danacottrellforcongress.com/"}
   // {name: "Andrew Learned", county: "", position: "Congressional District 15", district: "FL-15", url: "https://andrewlearned.com/"},
   // {name: "Pam Keith", county: "", position: "Congressional District 18", district: "FL-18", url: "https://electpamkeith.com/"},
   // {name: "David Richardson", county: "", position: "Congressional District 27", district: "FL-27", url: "https://davidforflorida.com/"}
@@ -95,7 +98,8 @@ export const FloridaSenateCandidates: CandidateInfo[] = [
   // {name: "Julian Santos", county: "", position: "Florida Senate District 36", district: "36", url: "https://www.santosforflorida.com/"},
   {name: "Gary Farmer", county: "", position: "Florida Senate District 34 (incumbent)", district: "34", url: "https://www.electgaryfarmer.com/"},
   {name: "Annette Taddeo", county: "", position: "Florida Senate District 40 (incumbent)", district: "40", url: "https://annettetaddeo.com/"},
-  {name: "Anissa Karim", county: "", counties: ["Collier", "Hendry", "Lee"], position: "Florida Senate District 28", district: "28", url: "https://www.karimforsenate.com/", electionDate: "2018-11-06"}
+  {name: "Anissa Karim", county: "", counties: ["Collier", "Hendry", "Lee"], position: "Florida Senate District 28", district: "28", url: "https://www.karimforsenate.com/", electionDate: "2018-11-06"},
+  {name: "Kathy Lewis", county: "", position: "Florida Senate District 20", district: "20", url: "https://www.kathyforflorida.com/"}
 ];
 
 export const FloridaHouseCandidates: CandidateInfo[] = [
@@ -142,5 +146,9 @@ export const FloridaHouseCandidates: CandidateInfo[] = [
   {name: "Matt Theobald", county: "", counties: ["Matin", "St Lucie"], position: "Florida House District 83", district: "83", url: "http://www.mattforfloridahouse.com/", electionDate:"2018-11-06"},
   {name: "Ellen Baker", county: "", counties: ["Palm Beach"], position: "Florida House District 85", district: "85", url: "https://www.electellenbaker.com/", electionDate:"2018-11-06"},
   {name: "Emma Elizabeth Collum", county: "", counties: ["Broward"], position: "Florida House District 93", district: "93", url: "https://www.emmacollum.com/", electionDate:"2018-11-06"},
-  {name: "Dr. Jeffrey Solomon", county: "", counties: ["Miami-Dade"], position: "Florida House District 115", district: "115", url: "https://www.docsolomonforhouse.com/", electionDate:"2018-08-28"}
+  {name: "Dr. Jeffrey Solomon", county: "", counties: ["Miami-Dade"], position: "Florida House District 115", district: "115", url: "https://www.docsolomonforhouse.com/", electionDate:"2018-08-28"},
+  {name: "Audrey Asciutto", county: "", position: "Florida House District 55", district: "55", url: "https://www.audreyforfloridahouse55.com/"},
+  {name: "Alanis Garcia", county: "", position: "Florida House District 77", district: "77", url: "https://www.facebook.com/AlanisGarciafor77th/"},
+  {name: "Nicole Haagenson", county: "", position: "Florida House District 54", district: "54", url: "https://nicolehaagenson.com/"},
+  {name: "Tracye Polson", county: "", position: "Florida House District 15", district: "", url: "https://polsonforjacksonville.com/"}
 ];
