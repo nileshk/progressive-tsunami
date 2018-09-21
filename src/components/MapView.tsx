@@ -23,6 +23,8 @@ import * as React from 'react';
 import SelectionInfo from "./SelectionInfo";
 import * as GeoData from './GeoData';
 import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
+import ElectionDataService, {PrecinctResults, SummaryResults} from "./ElectionDataService";
+import PrecinctInfo from "./PrecinctInfo";
 // import * as ol from "ol";
 
 export const NationalCongressionalDistrictType = 'national';
@@ -31,6 +33,7 @@ export const StateHouseDistrictType = 'state';
 export const CountyType = 'county';
 export const StateWideType = 'statewide';
 export const LocationType = 'location';
+export const PrecinctType = 'precinct';
 
 // TODO Use enum instead of this
 const featureTypes = [
@@ -39,7 +42,8 @@ const featureTypes = [
   StateSenateDistrictType,
   StateHouseDistrictType,
   StateWideType,
-  LocationType
+  LocationType,
+  PrecinctType
 ];
 
 interface State {
@@ -56,6 +60,11 @@ interface State {
   districtLayers: Layer[];
   candidates: CandidateInfo[];
   locationLayer?: any;
+  electionDataSummaryLoaded: boolean;
+  electionDataSummary: SummaryResults[];
+  electionDataPrecinctsLoaded: boolean;
+  electionDataPrecincts: PrecinctResults[];
+  advancedMode: boolean;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -67,7 +76,7 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], candidates: []};
+    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false};
   }
 
   public componentDidMount() {
@@ -108,6 +117,9 @@ class MapView extends React.Component<{}, State> {
     makeLayer(GeoData.COUNTY_URLS, CountyType, new GeoJSON(), this.styleFunction);
     makeLayer(GeoData.STATE_DISTRICT_KML_URLS, StateSenateDistrictType, new KML({extractStyles: false}), this.styleFunction);
     makeLayer(GeoData.STATE_HOUSE_DISTRICT_KML_URLS, StateHouseDistrictType, new KML({extractStyles: false}), this.styleFunction);
+    makeLayer(GeoData.PRECINCT_URLS, PrecinctType, new GeoJSON(), this.precinctStyleFunction);
+
+
 
     const map: Map = new Map({
       target: 'map',
@@ -143,6 +155,11 @@ class MapView extends React.Component<{}, State> {
         mapLayer.setVisible(visible);
       });
     }
+    /*
+    if (this.state.electionDataSummaryLoaded !== prevState.electionDataSummaryLoaded) {
+      console.log(this.state.electionDataSummary);
+    }
+    */
   }
 
   private mapClick = (evt: any) => { // ol.events.Event) {
@@ -236,10 +253,53 @@ class MapView extends React.Component<{}, State> {
     return 0;
   }
 
+  private precinctLevel = (feature: Feature | FeatureRender, code?: string): number => {
+    const totalsVsMax = false;
+    const contestId = "17363"; // Governor
+    const candidateIssueId = "79631"; // Gillum
+
+    if (!code) {
+      code = MapView.codeFromFeature(feature);
+    }
+    if (code && this.state.electionDataPrecinctsLoaded) {
+      const precinctDataItems = this.state.electionDataPrecincts;
+      if (totalsVsMax) { // Value is compared to all other precincts
+        const totalVotesList = precinctDataItems.filter(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0);
+        const maxTotalVotes: number = Math.max(...totalVotesList);
+        if (maxTotalVotes > 0) {
+          const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
+          if (precinctData && precinctData.TotalVotes !== '-') {
+            const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
+            if (totalVotes > 0) {
+              return (totalVotes / maxTotalVotes);
+            }
+          }
+        }
+      } else { // Value is compared with other candidates in the selected precinct
+        const totalForAllCandidates = precinctDataItems.filter(p => p.ContestId === contestId && p.PrecinctCode === code).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0).reduce((x, y) => x + y, 0);
+
+        if (totalForAllCandidates > 0) {
+          const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
+          if (precinctData && precinctData.TotalVotes !== '-') {
+            const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
+            if (totalVotes > 0) {
+              return (totalVotes / totalForAllCandidates);
+            }
+          }
+        }
+      }
+    }
+    return 0;
+  };
+
   private static codeFromFeature(feature: Feature | FeatureRender): string {
     return 'Code' in feature.getProperties()
       ? feature.get('Code')
-      : ('GEOID' in feature.getProperties() ? feature.get('GEOID').slice(-2).replace(/^0+/, '') : ('kind' in feature.getProperties() && feature.get('kind') === 'county' ? feature.get('name') : ''));
+      : ('GEOID' in feature.getProperties()
+        ? feature.get('GEOID').slice(-2).replace(/^0+/, '')
+        : ('kind' in feature.getProperties() && feature.get('kind') === 'county' ?
+          feature.get('name')
+          : ('PRECINCT' in feature.getProperties() ? feature.get('PRECINCT') : '')));
   }
 
   private styleFunction = (feature: Feature | FeatureRender) => {
@@ -288,11 +348,56 @@ class MapView extends React.Component<{}, State> {
     ];
   };
 
+  private precinctStyleFunction = (feature: Feature | FeatureRender) => {
+    const precinctLevel: number = this.precinctLevel(feature);
+    let baseColor = 'rgba(0,0,255,';
+    if (precinctLevel < 0.75) {
+      baseColor = 'rgba(0,255,0,';
+    }
+    if (precinctLevel < 0.5) {
+      baseColor = 'rgba(255,255,0,';
+    }
+    if (precinctLevel < 0.25) {
+      baseColor = 'rgba(255,0,0,';
+    }
+    const color = baseColor + precinctLevel.toString() + ')';
+
+    return [
+      new Style({
+        fill: new Fill({
+          color,
+        }),
+        stroke: new Stroke({
+          color: '#3399CC',
+          width: 1.25
+        }),
+        text: new Text({
+          font: '10px Calibri,sans-serif',
+          fill: new Fill({color: '#000'}),
+          stroke: new Stroke({
+            color: '#fff', width: 2
+          }),
+          text: MapView.featureLabel(feature)
+        })
+      })
+    ];
+  };
+
   private changeType = (n: number) => {
     this.setState({selectedType: featureTypes[n], showCandidatesForYourLocation: false, candidates: []});
     if (n === 4) {
       // State-wide type, set code to Florida and disable show all
       this.setState({ selectedCode: 'Florida', selectedFeatureType: StateWideType, showAllCandidates: false });
+    }
+    if (n === 6 && !this.state.electionDataSummaryLoaded) {
+      ElectionDataService.fetchSummaryResults((results) => {
+        console.log('Fetched summary results');
+        this.setState({ electionDataSummary: results, electionDataSummaryLoaded: true });
+      });
+      ElectionDataService.fetchPrecinctResults((results => {
+        console.log('Fetched precinct results');
+        this.setState({ electionDataPrecincts: results, electionDataPrecinctsLoaded: true });
+      }))
     }
   };
 
@@ -378,6 +483,10 @@ class MapView extends React.Component<{}, State> {
     this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, candidates});
   };
 
+  private enableAdvancedMode() {
+    this.setState({advancedMode: true});
+  }
+
   public render() {
     return (
       <div>
@@ -399,6 +508,12 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">State House</span><br/>
               <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
               <span className="type-selection">State-Wide</span><br/>
+
+              {this.state.advancedMode ?
+                <span><input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
+                <span className="type-selection">Precincts</span><br/></span>
+                : ''}
+
               <input type="radio" name="featureType" value={LocationType} checked={this.state.selectedType === LocationType} onClick={(e) => this.changeType(5)}/>
               <span className="type-selection">Location</span><br/>
               {this.state.geolocationBrowserSupport ?
@@ -409,10 +524,17 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">
                 <button onClick={this.showAllCandidates}>Show All Candidates</button>
               </span>
-              <span className="sidebar-icon">🌊</span>
+              <br/>
+              <span className="sidebar-icon" onDoubleClick={(e) => this.enableAdvancedMode()}>🌊</span>
             </div>
             <div className="splitter"/>
-            <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates= {this.state.candidates}/>
+            <div>
+              <div className="main-content">
+                {this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts}/></span> :
+                <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates={this.state.candidates}/>
+                }
+              </div>
+            </div>
           </div>
           <footer>&copy; 2018 <a href="https://nileshk.com">Nilesh Kapadia</a></footer>
         </div>

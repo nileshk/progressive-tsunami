@@ -109,3 +109,7 @@ export const COUNTY_URLS: string[] = [
 export const STATE_URLS: string[] = [
   'downloaded/world.geo.json/countries/USA/FL.geo.json',
 ];
+
+export const PRECINCT_URLS: string[] = [
+  'downloaded/precincts/FL/hillsborough/fl_hillsborough_precincts.geojson',
+];

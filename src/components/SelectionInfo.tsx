@@ -218,31 +218,29 @@ class SelectionInfo extends React.Component<Props, State> {
     const candidates = this.getCandidates();
     return (
       <div>
-        <div className="main-content">
-          {this.props.code.length > 0 || this.props.showAll || this.props.forCoordinates ?
-            <div>
-              {this.props.showAll
-                ? <span><h2>Showing all candidates</h2><p><i>(click on county/district in map to filter or click "Your Location" button)</i></p></span>
-                : <span>{this.props.forCoordinates
-                  ? <span><h2>Showing all candidates for Your Location</h2></span>
-                  : <h2>{this.state.typeName}: {this.props.code}</h2>}</span>
-              }
-              {candidates.length > 0 ? <span><button onClick={this.csvExport}>Download as CSV</button></span> : ''}
-              {candidates.length > 0 ? <p><b>Candidates endorsed by <a href="https://www.progressivefl.org/endorsements-2018/" target="_blank">Democratic Progressive Caucus of Florida</a>
-                {this.props.featureType === CountyType || this.props.showAll ? ' (including Local Chapters) ' : ''}
-                :</b></p> : ''}
-              {candidates.map((candidate) =>
-                <p key={candidate.name}>
-                  {waveIcon}
-                  {candidate.url ? <a href={candidate.url} target="_blank">{candidate.name}</a>
-                    : <span>{candidate.name}</span>}
-                  <span> - {this.props.showAll && candidate.county !== '' ? <span>{candidate.county} </span>: ''}
-                    {candidate.position}</span>
-                </p>
-              )}
-            </div>
-            : ''}
-        </div>
+        {this.props.code.length > 0 || this.props.showAll || this.props.forCoordinates ?
+          <div>
+            {this.props.showAll
+              ? <span><h2>Showing all candidates</h2><p><i>(click on county/district in map to filter or click "Your Location" button)</i></p></span>
+              : <span>{this.props.forCoordinates
+                ? <span><h2>Showing all candidates for Your Location</h2></span>
+                : <h2>{this.state.typeName}: {this.props.code}</h2>}</span>
+            }
+            {candidates.length > 0 ? <span><button onClick={this.csvExport}>Download as CSV</button></span> : ''}
+            {candidates.length > 0 ? <p><b>Candidates endorsed by <a href="https://www.progressivefl.org/endorsements-2018/" target="_blank">Democratic Progressive Caucus of Florida</a>
+              {this.props.featureType === CountyType || this.props.showAll ? ' (including Local Chapters) ' : ''}
+              :</b></p> : ''}
+            {candidates.map((candidate) =>
+              <p key={candidate.name}>
+                {waveIcon}
+                {candidate.url ? <a href={candidate.url} target="_blank">{candidate.name}</a>
+                  : <span>{candidate.name}</span>}
+                <span> - {this.props.showAll && candidate.county !== '' ? <span>{candidate.county} </span> : ''}
+                  {candidate.position}</span>
+              </p>
+            )}
+          </div>
+          : ''}
       </div>
     )
   }
