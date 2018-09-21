@@ -4,6 +4,7 @@ import {PrecinctResults} from "./ElectionDataService";
 interface Props {
   code: string;
   precinctDataItems: PrecinctResults[];
+  contestId: string;
 }
 
 interface State {
@@ -13,7 +14,7 @@ interface State {
 class PrecinctInfo extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    const precinctDataFiltered = props.precinctDataItems.filter(p => p.PrecinctCode === props.code && p.ContestId === "17363");
+    const precinctDataFiltered = props.precinctDataItems.filter(p => p.PrecinctCode === props.code && p.ContestId === props.contestId);
     this.state = {precinctFilteredItems: precinctDataFiltered};
   }
 
@@ -28,7 +29,7 @@ class PrecinctInfo extends React.Component<Props, State> {
   }
 
   private updateData = () => {
-    const precinctDataFiltered = this.props.precinctDataItems.filter(p => p.PrecinctCode === this.props.code && p.ContestId === "17363");
+    const precinctDataFiltered = this.props.precinctDataItems.filter(p => p.PrecinctCode === this.props.code && p.ContestId === this.props.contestId);
     this.setState({precinctFilteredItems: precinctDataFiltered});
   };
 

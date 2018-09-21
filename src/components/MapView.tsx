@@ -65,6 +65,9 @@ interface State {
   electionDataPrecinctsLoaded: boolean;
   electionDataPrecincts: PrecinctResults[];
   advancedMode: boolean;
+  selectedCandidateIssueId: string;
+  selectedContestId: string;
+  candidateSummaryResult?: SummaryResults;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -76,7 +79,8 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false};
+    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false, selectedCandidateIssueId: '79631' /* Andrew Gillum */,
+    selectedContestId: '17363' /* Dem Governor */};
   }
 
   public componentDidMount() {
@@ -155,11 +159,14 @@ class MapView extends React.Component<{}, State> {
         mapLayer.setVisible(visible);
       });
     }
-    /*
-    if (this.state.electionDataSummaryLoaded !== prevState.electionDataSummaryLoaded) {
-      console.log(this.state.electionDataSummary);
+    if (this.state.electionDataSummaryLoaded !== prevState.electionDataSummaryLoaded && this.state.selectedCandidateIssueId.length > 0) {
+      this.selectCandidate(this.state.selectedCandidateIssueId);
     }
-    */
+    if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
+      if (this.state.map) {
+        this.state.map.render();
+      }
+    }
   }
 
   private mapClick = (evt: any) => { // ol.events.Event) {
@@ -255,14 +262,14 @@ class MapView extends React.Component<{}, State> {
 
   private precinctLevel = (feature: Feature | FeatureRender, code?: string): number => {
     const totalsVsMax = false;
-    const contestId = "17363"; // Governor
-    const candidateIssueId = "79631"; // Gillum
 
     if (!code) {
       code = MapView.codeFromFeature(feature);
     }
-    if (code && this.state.electionDataPrecinctsLoaded) {
+    if (code && this.state.electionDataPrecinctsLoaded && this.state.candidateSummaryResult) {
       const precinctDataItems = this.state.electionDataPrecincts;
+      const contestId = this.state.candidateSummaryResult.ContestId;
+      const candidateIssueId = this.state.candidateSummaryResult.Candidate_IssueId;
       if (totalsVsMax) { // Value is compared to all other precincts
         const totalVotesList = precinctDataItems.filter(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0);
         const maxTotalVotes: number = Math.max(...totalVotesList);
@@ -483,9 +490,19 @@ class MapView extends React.Component<{}, State> {
     this.setState({showCandidatesForYourLocation: true, showAllCandidates: false, candidates});
   };
 
-  private enableAdvancedMode() {
+  private enableAdvancedMode = () => {
     this.setState({advancedMode: true});
-  }
+  };
+
+  private selectCandidate = (candidateIssueId: string) => {
+    this.setState({ selectedCandidateIssueId: candidateIssueId});
+    if (this.state.electionDataSummaryLoaded && candidateIssueId.length > 0) {
+      const dataWithCandidateIssueId = this.state.electionDataSummary.find(d => d.Candidate_IssueId === candidateIssueId);
+      if (dataWithCandidateIssueId) {
+        this.setState({candidateSummaryResult: dataWithCandidateIssueId, selectedContestId: dataWithCandidateIssueId.ContestId});
+      }
+    }
+  };
 
   public render() {
     return (
@@ -530,7 +547,14 @@ class MapView extends React.Component<{}, State> {
             <div className="splitter"/>
             <div>
               <div className="main-content">
-                {this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts}/></span> :
+                {this.state.selectedType === PrecinctType && this.state.electionDataSummaryLoaded ?
+                  <select value={this.state.selectedCandidateIssueId} onChange={(e) => this.selectCandidate(e.target.value)}>
+                    {this.state.electionDataSummary.map(d =>
+                      <option key={d.Candidate_IssueId} value={d.Candidate_IssueId}>{d.Candidate_Issue} - {d.Contest}</option>
+                    )}
+                  </select>
+                  : ''}
+                {this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts} contestId={this.state.selectedContestId}/></span> :
                 <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates={this.state.candidates}/>
                 }
               </div>
