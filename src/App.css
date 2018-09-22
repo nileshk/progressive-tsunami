@@ -57,105 +57,200 @@ html, body {
   display: flex;
 }
 
-#map {
+.map {
   margin: 0;
   width: 100%;
  /* height: 50%; */
 }
 
+.map-large {
+  margin: 0;
+  width: 100%;
+}
+
 @media (max-height: 150px) {
-  #map {
+  .map {
     max-height: 70px;
   }
 }
 
 @media (min-height: 150px) and (max-height: 300px) {
-  #map {
+  .map {
     min-height: 70px;
     max-height: 80px;
   }
 }
 
 @media (min-height: 300px) and (max-height: 400px) {
-  #map {
+  .map {
     min-height: 80px;
     max-height: 150px;
   }
 }
 
 @media (min-height: 400px) and (max-height: 500px) {
-  #map {
+  .map {
     min-height: 150px;
     max-height: 200px;
   }
 }
 
 @media (min-height: 500px) and (max-height: 750px) {
-  #map {
+  .map {
     min-height: 200px;
     max-height: 250px;
   }
 }
 
 @media (min-height: 750px) and (max-height: 850px) {
-  #map {
+  .map {
     min-height: 250px;
     max-height: 350px;
   }
 }
 
 @media (min-height: 850px) and (max-height: 950px) {
-  #map {
+  .map {
     min-height: 350px;
     max-height: 450px;
   }
 }
 
 @media (min-height: 950px) and (max-height: 1050px) {
-  #map {
+  .map {
     min-height: 450px;
     max-height: 500px;
   }
 }
 
 @media (min-height: 1000px) and (max-height: 1200px) {
-  #map {
+  .map {
     min-height: 500px;
     max-height: 600px;
   }
 }
 
 @media (min-height: 1200px) and (max-height: 1300px) {
-  #map {
+  .map {
     min-height: 600px;
     max-height: 650px;
   }
 }
 
 @media (min-height: 1300px) and (max-height: 1400px) {
-  #map {
+  .map {
     min-height: 650px;
     max-height: 700px;
   }
 }
 
 @media (min-height: 1400px) and (max-height: 2000px) {
-  #map {
+  .map {
     min-height: 700px;
     max-height: 768px;
   }
 }
 
 @media (min-height: 2000px) {
-  #map {
+  .map {
     min-height: 768px;
     max-height: 1024px;
   }
 }
 
+@media (max-height: 150px) {
+  .map-large {
+    max-height: 140px;
+  }
+}
+
+@media (min-height: 150px) and (max-height: 300px) {
+  .map-large {
+    min-height: 140px;
+    max-height: 290px;
+  }
+}
+
+@media (min-height: 300px) and (max-height: 400px) {
+  .map-large {
+    min-height: 290px;
+    max-height: 390px;
+  }
+}
+
+@media (min-height: 400px) and (max-height: 500px) {
+  .map-large {
+    min-height: 390px;
+    max-height: 490px;
+  }
+}
+
+@media (min-height: 500px) and (max-height: 750px) {
+  .map-large {
+    min-height: 490px;
+    max-height: 740px;
+  }
+}
+
+@media (min-height: 750px) and (max-height: 850px) {
+  .map-large {
+    min-height: 740px;
+    max-height: 840px;
+  }
+}
+
+@media (min-height: 850px) and (max-height: 950px) {
+  .map-large {
+    min-height: 840px;
+    max-height: 940px;
+  }
+}
+
+@media (min-height: 950px) and (max-height: 1050px) {
+  .map-large {
+    min-height: 940px;
+    max-height: 1040px;
+  }
+}
+
+@media (min-height: 1000px) and (max-height: 1200px) {
+  .map-large {
+    min-height: 990px;
+    max-height: 1190px;
+  }
+}
+
+@media (min-height: 1200px) and (max-height: 1300px) {
+  .map-large {
+    min-height: 1190px;
+    max-height: 1290px;
+  }
+}
+
+@media (min-height: 1300px) and (max-height: 1400px) {
+  .map-large {
+    min-height: 1200px;
+    max-height: 1300px;
+  }
+}
+
+@media (min-height: 1400px) and (max-height: 2000px) {
+  .map-large {
+    min-height: 1300px;
+    max-height: 1900px;
+  }
+}
+
+@media (min-height: 2000px) {
+  .map-large {
+    min-height: 1900px;
+    max-height: 1900px;
+  }
+}
+
 /*
 @media (min-width: 300px) and (max-width: 500px) {
-  #map {
+  .map {
     width: 500px;
   }
 }
@@ -163,39 +258,39 @@ html, body {
 
 /*
 @media (min-width: 300px) and (max-width: 500px) {
-  #map {
+  .map {
     width: 500px;
   }
 }
 
 @media (min-width: 500px) {
-  #map {
+  .map {
     width: 768px;
   }
 }
 
 @media (max-height: 300px) {
-  #map {
+  .map {
     height: 300px;
   }
 }
 */
 /*
 @media (min-height: 300px) and (max-height: 500px) {
-  #map {
+  .map {
     height: 500px;
   }
 }
 */
 /*
 @media (min-height: 500px) {
-  #map {
+  .map {
     height: 768px;
   }
 }
 */
 /*
-#map {
+.map {
   width: 1152px;
   height: 500px;
 }

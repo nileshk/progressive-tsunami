@@ -58,6 +58,7 @@ interface State {
   showCandidatesForYourLocation: boolean;
   //coordinates?: Coordinates;
   districtLayers: Layer[];
+  precinctLayers: Layer[];
   candidates: CandidateInfo[];
   locationLayer?: any;
   electionDataSummaryLoaded: boolean;
@@ -68,6 +69,8 @@ interface State {
   selectedCandidateIssueId: string;
   selectedContestId: string;
   candidateSummaryResult?: SummaryResults;
+  rerenderMap: boolean;
+  mapLarge: boolean;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -79,8 +82,10 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false, selectedCandidateIssueId: '79631' /* Andrew Gillum */,
-    selectedContestId: '17363' /* Dem Governor */};
+    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], precinctLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false, selectedCandidateIssueId: '79631' /* Andrew Gillum */,
+    selectedContestId: '17363' /* Dem Governor */,
+    rerenderMap: false,
+    mapLarge: false};
   }
 
   public componentDidMount() {
@@ -94,12 +99,13 @@ class MapView extends React.Component<{}, State> {
     ];
 
     const districtLayers: any[] = [];
+    const precinctLayers: any[] = [];
 
-    const makeLayer = (urls: string[], districtType: string, sourceFormat: any, styleFunction: (feature: (Feature | FeatureRender)) => Style[], addToDistrictLayers = true): void => {
+    const makeLayer = (urls: string[], districtType: string, sourceFormat: any, styleFunction: (feature: (Feature | FeatureRender)) => Style[], addToDistrictLayers = true, addToPrecinctLayers = false): void => {
       if (urls && urls.length > 0) {
         for (const url of urls) {
 
-          const geoJSONLayer = new Vector({
+          const layer = new Vector({
             source: new VectorSource({
               format: sourceFormat,
               url
@@ -107,10 +113,13 @@ class MapView extends React.Component<{}, State> {
             opacity: DEFAULT_OPACITY,
             style: styleFunction
           });
-          geoJSONLayer.setProperties({featureType: districtType});
-          layers.push(geoJSONLayer);
+          layer.setProperties({featureType: districtType});
+          layers.push(layer);
           if (addToDistrictLayers) {
-            districtLayers.push(geoJSONLayer);
+            districtLayers.push(layer);
+          }
+          if (addToPrecinctLayers) {
+            precinctLayers.push(layer);
           }
         }
       }
@@ -121,7 +130,7 @@ class MapView extends React.Component<{}, State> {
     makeLayer(GeoData.COUNTY_URLS, CountyType, new GeoJSON(), this.styleFunction);
     makeLayer(GeoData.STATE_DISTRICT_KML_URLS, StateSenateDistrictType, new KML({extractStyles: false}), this.styleFunction);
     makeLayer(GeoData.STATE_HOUSE_DISTRICT_KML_URLS, StateHouseDistrictType, new KML({extractStyles: false}), this.styleFunction);
-    makeLayer(GeoData.PRECINCT_URLS, PrecinctType, new GeoJSON(), this.precinctStyleFunction);
+    makeLayer(GeoData.PRECINCT_URLS, PrecinctType, new GeoJSON(), this.precinctStyleFunction, true, true);
 
 
 
@@ -143,7 +152,7 @@ class MapView extends React.Component<{}, State> {
       districtLayers.filter(layer => !('featureType' in layer.getProperties()) || layer.get('featureType') !== CountyType).forEach(layer => layer.setVisible(false));
     }, 2000);
 
-    this.setState({map, districtLayers});
+    this.setState({map, districtLayers, precinctLayers});
     this.changeType(0);
 
     window.onresize = () => {
@@ -163,9 +172,31 @@ class MapView extends React.Component<{}, State> {
       this.selectCandidate(this.state.selectedCandidateIssueId);
     }
     if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
+      this.setState({rerenderMap: true});
+    }
+    if (this.state.rerenderMap) {
+      console.log("RerenderMap");
+      this.setState({rerenderMap: false});
+      if (this.state.precinctLayers) {
+        this.state.precinctLayers.forEach(layer => {
+          if (layer.getVisible()) {
+            const source = layer.getSource();
+            if (source instanceof VectorSource) {
+              const features: Feature[] = source.getFeatures();
+              if (features) {
+                features.forEach(feature => feature.changed()); // HACK Workaround to reevaluate styleFunction
+              }
+            }
+          }
+        })
+      }
       if (this.state.map) {
         this.state.map.render();
+        this.state.map.updateSize();
       }
+    }
+    if (this.state.advancedMode !== prevState.advancedMode || this.state.mapLarge !== prevState.mapLarge) {
+      this.setState({rerenderMap: true});
     }
   }
 
@@ -399,11 +430,11 @@ class MapView extends React.Component<{}, State> {
     if (n === 6 && !this.state.electionDataSummaryLoaded) {
       ElectionDataService.fetchSummaryResults((results) => {
         console.log('Fetched summary results');
-        this.setState({ electionDataSummary: results, electionDataSummaryLoaded: true });
+        this.setState({ electionDataSummary: results, electionDataSummaryLoaded: true, rerenderMap: true });
       });
       ElectionDataService.fetchPrecinctResults((results => {
         console.log('Fetched precinct results');
-        this.setState({ electionDataPrecincts: results, electionDataPrecinctsLoaded: true });
+        this.setState({ electionDataPrecincts: results, electionDataPrecinctsLoaded: true, rerenderMap: true });
       }))
     }
   };
@@ -504,11 +535,22 @@ class MapView extends React.Component<{}, State> {
     }
   };
 
+  private toggleMapSize = () => {
+    this.setState({mapLarge: !this.state.mapLarge});
+  };
+
   public render() {
+    const mapClassName = this.state.mapLarge ? 'map-large' : 'map';
+
     return (
       <div>
-        <div className="map">
-          <div id="map"/>
+        {this.state.advancedMode ?
+        <div onClick={(e) => this.toggleMapSize()}>
+          <button>Toggle Map Size</button>
+        </div>
+        : ''}
+        <div>
+          <div id="map" className={mapClassName}/>
         </div>
         <div className="flex-master">
           <header className="page-header"/>
@@ -525,12 +567,6 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">State House</span><br/>
               <input type="radio" name="featureType" value={StateWideType} checked={this.state.selectedType === StateWideType} onClick={(e) => this.changeType(4)}/>
               <span className="type-selection">State-Wide</span><br/>
-
-              {this.state.advancedMode ?
-                <span><input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
-                <span className="type-selection">Precincts</span><br/></span>
-                : ''}
-
               <input type="radio" name="featureType" value={LocationType} checked={this.state.selectedType === LocationType} onClick={(e) => this.changeType(5)}/>
               <span className="type-selection">Location</span><br/>
               {this.state.geolocationBrowserSupport ?
@@ -541,6 +577,14 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">
                 <button onClick={this.showAllCandidates}>Show All Candidates</button>
               </span>
+              {this.state.advancedMode ?
+                <span>
+                  <hr/>
+                  <h4>Primary Election Data</h4>
+                  <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
+                  <span className="type-selection">Precincts</span>
+                </span>
+                : ''}
               <br/>
               <span className="sidebar-icon" onDoubleClick={(e) => this.enableAdvancedMode()}>🌊</span>
             </div>
