@@ -34,10 +34,10 @@ class PrecinctInfo extends React.Component<Props, State> {
   };
 
   public render() {
-    const list = [];
+    const list: JSX.Element[] = [];
     if (this.state.precinctFilteredItems) {
       for (const item of this.state.precinctFilteredItems) {
-        list.push(<p>{item.Candidate_Issue} - {item.TotalVotes}</p>)
+        list.push(<p>{item.Candidate_Issue} - {item.TotalVotes}</p>);
         console.log(item);
       }
     }
