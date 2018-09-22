@@ -590,11 +590,25 @@ class MapView extends React.Component<{}, State> {
             <div>
               <div className="main-content">
                 {this.state.selectedType === PrecinctType && this.state.electionDataSummaryLoaded ?
-                  <select value={this.state.selectedCandidateIssueId} onChange={(e) => this.selectCandidate(e.target.value)}>
+                  <span>
+                    <div className="legend">
+                      <table>
+                        <tr>
+                          <td><div className="legend-box percent25"/><span className="legend-text">1-25%</span></td>
+                          <td><div className="legend-box percent50"/><span className="legend-text">25-50%</span></td>
+                          <td><div className="legend-box percent75"/><span className="legend-text">50-75%</span></td>
+                          <td><div className="legend-box percent100"/><span className="legend-text">75-100%</span></td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div>
+                    <select value={this.state.selectedCandidateIssueId} onChange={(e) => this.selectCandidate(e.target.value)}>
                     {this.state.electionDataSummary.map(d =>
                       <option key={d.Candidate_IssueId} value={d.Candidate_IssueId}>{d.Candidate_Issue} - {d.Contest}</option>
                     )}
-                  </select>
+                    </select>
+                    </div>
+                  </span>
                   : ''}
                 {this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts} contestId={this.state.selectedContestId}/></span> :
                   <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType}

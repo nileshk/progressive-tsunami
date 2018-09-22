@@ -501,3 +501,44 @@ a:link, a:hover, a:visited .candidate-bullet-point {
   text-align: left;
 }
 
+.legend {
+  text-align: left;
+  margin: 5px;
+  padding-bottom: 10px;
+}
+
+.legend-text {
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.legend-box {
+  float: left;
+  width: 20px;
+  height: 20px;
+  margin: 0px;
+}
+
+.percent25 {
+  background-color: white;
+  background-image: linear-gradient(to right, rgba(255, 0, 0, 0.3), rgba(255, 0, 0, 1));
+  border: 1px solid rgba(255, 0, 0, 1);
+}
+
+.percent50 {
+  background-color: white;
+  background-image: linear-gradient(to right, rgba(255, 255, 0, 0.5), rgba(255, 255, 0, 1));
+  border: 1px solid rgba(255, 255, 0, 1);
+}
+
+.percent75 {
+  background-color: white;
+  background-image: linear-gradient(to right, rgba(0, 255, 0, 0.6), rgba(0, 255, 0, 1));
+  border: 1px solid rgba(0, 255, 0, 1);
+}
+
+.percent100 {
+  background-color: white;
+  background-image: linear-gradient(to right, rgba(0, 0, 255, 0.7), rgba(0, 0, 255, 1));
+  border: 1px solid rgba(0, 0, 255, 1);
+}
