@@ -577,14 +577,12 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">
                 <button onClick={this.showAllCandidates}>Show All Candidates</button>
               </span>
-              {this.state.advancedMode ?
-                <span>
+              <span>
                   <hr/>
                   <h4>Primary Election Data</h4>
                   <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
                   <span className="type-selection">Precincts</span>
                 </span>
-                : ''}
               <br/>
               <span className="sidebar-icon" onDoubleClick={(e) => this.enableAdvancedMode()}>🌊</span>
             </div>
@@ -599,7 +597,8 @@ class MapView extends React.Component<{}, State> {
                   </select>
                   : ''}
                 {this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts} contestId={this.state.selectedContestId}/></span> :
-                <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType} showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates={this.state.candidates}/>
+                  <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType}
+                                 showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates={this.state.candidates}/>
                 }
               </div>
             </div>
