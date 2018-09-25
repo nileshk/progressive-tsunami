@@ -81,7 +81,7 @@ export const USCongressionalCandidates: CandidateInfo[] = [
   // {name: "Chardo Richardson", county: "", position: "Congressional District 7", district: "FL-07", url: "https://chardo2018.com/"},
   {name: "Sanjay Patel", county: "", position: "Congressional District 8", district: "FL-08", url: "https://www.votesanjaypatel.com/"},
   {name: "Dana Cottrell", county: "", position: "Congressional District 11", district: "FL-11", url: "https://danacottrellforcongress.com/"},
-  {name: "Dr. Jennifer Zimmerman", county: "", position: "Congressional District 1", district: "FL-1", url: "https://www.jenniferzimmermanmd.com/"}
+  {name: "Dr. Jennifer Zimmerman", county: "", position: "Congressional District 1", district: "FL-01", url: "https://www.jenniferzimmermanmd.com/"}
   // {name: "Andrew Learned", county: "", position: "Congressional District 15", district: "FL-15", url: "https://andrewlearned.com/"},
   // {name: "Pam Keith", county: "", position: "Congressional District 18", district: "FL-18", url: "https://electpamkeith.com/"},
   // {name: "David Richardson", county: "", position: "Congressional District 27", district: "FL-27", url: "https://davidforflorida.com/"}
