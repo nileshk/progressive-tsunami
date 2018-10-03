@@ -25,6 +25,7 @@ import * as GeoData from './GeoData';
 import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
 import ElectionDataService, {PrecinctResults, SummaryResults} from "./ElectionDataService";
 import PrecinctInfo from "./PrecinctInfo";
+import {LayerSource} from "./GeoData";
 // import * as ol from "ol";
 
 export const NationalCongressionalDistrictType = 'national';
@@ -65,6 +66,7 @@ interface State {
   electionDataSummary: SummaryResults[];
   electionDataPrecinctsLoaded: boolean;
   electionDataPrecincts: PrecinctResults[];
+  selectedCounty: string;
   advancedMode: boolean;
   selectedCandidateIssueId: string;
   selectedContestId: string;
@@ -85,7 +87,8 @@ class MapView extends React.Component<{}, State> {
     this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], precinctLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false, selectedCandidateIssueId: '79631' /* Andrew Gillum */,
     selectedContestId: '17363' /* Dem Governor */,
     rerenderMap: false,
-    mapLarge: false};
+    mapLarge: false,
+    selectedCounty: 'Hillsborough'};
   }
 
   public componentDidMount() {
@@ -101,19 +104,21 @@ class MapView extends React.Component<{}, State> {
     const districtLayers: any[] = [];
     const precinctLayers: any[] = [];
 
-    const makeLayer = (urls: string[], districtType: string, sourceFormat: any, styleFunction: (feature: (Feature | FeatureRender)) => Style[], addToDistrictLayers = true, addToPrecinctLayers = false): void => {
+    const makeLayer = (urls: string[] | LayerSource[], districtType: string, sourceFormat: any, styleFunction: (feature: (Feature | FeatureRender)) => Style[], addToDistrictLayers = true, addToPrecinctLayers = false): void => {
       if (urls && urls.length > 0) {
         for (const url of urls) {
+          const urlStr = (typeof url === 'string') ? url : url.url;
+          const layerName = (typeof url === 'string') ? '' : url.name;
 
           const layer = new Vector({
             source: new VectorSource({
               format: sourceFormat,
-              url
+              url: urlStr
             }),
             opacity: DEFAULT_OPACITY,
             style: styleFunction
           });
-          layer.setProperties({featureType: districtType});
+          layer.setProperties({featureType: districtType, layerName});
           layers.push(layer);
           if (addToDistrictLayers) {
             districtLayers.push(layer);
@@ -169,7 +174,11 @@ class MapView extends React.Component<{}, State> {
       });
     }
     if (this.state.electionDataSummaryLoaded !== prevState.electionDataSummaryLoaded && this.state.selectedCandidateIssueId.length > 0) {
-      this.selectCandidate(this.state.selectedCandidateIssueId);
+      if (this.state.electionDataSummaryLoaded) {
+        this.selectCandidate(this.state.selectedCandidateIssueId);
+      } else if (this.state.selectedType === PrecinctType) {
+        this.changeType(6); // Refresh election data if county changed and election data not loaded
+      }
     }
     if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
       this.setState({rerenderMap: true});
@@ -291,6 +300,24 @@ class MapView extends React.Component<{}, State> {
     return 0;
   }
 
+  private getCountyFromPrecinctFeature(feature: Feature | FeatureRender): string {
+    let layerName = '';
+    this.state.precinctLayers.forEach(layer => {
+      if ('layerName' in layer.getProperties()) {
+        const source = layer.getSource();
+        if (source instanceof VectorSource) {
+          const features: Feature[] = source.getFeatures();
+          features.forEach(f => {
+            if (f === feature) {
+              layerName = layer.get('layerName');
+            }
+          });
+        }
+      }
+    });
+    return layerName;
+  }
+
   private precinctLevel = (feature: Feature | FeatureRender, code?: string): number => {
     const totalsVsMax = false;
 
@@ -298,30 +325,33 @@ class MapView extends React.Component<{}, State> {
       code = MapView.codeFromFeature(feature);
     }
     if (code && this.state.electionDataPrecinctsLoaded && this.state.candidateSummaryResult) {
-      const precinctDataItems = this.state.electionDataPrecincts;
-      const contestId = this.state.candidateSummaryResult.ContestId;
-      const candidateIssueId = this.state.candidateSummaryResult.Candidate_IssueId;
-      if (totalsVsMax) { // Value is compared to all other precincts
-        const totalVotesList = precinctDataItems.filter(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0);
-        const maxTotalVotes: number = Math.max(...totalVotesList);
-        if (maxTotalVotes > 0) {
-          const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
-          if (precinctData && precinctData.TotalVotes !== '-') {
-            const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
-            if (totalVotes > 0) {
-              return (totalVotes / maxTotalVotes);
+      const countyName: string = this.getCountyFromPrecinctFeature(feature);
+      if (countyName && this.state.selectedCounty === countyName) {
+        const precinctDataItems = this.state.electionDataPrecincts;
+        const contestId = this.state.candidateSummaryResult.ContestId;
+        const candidateIssueId = this.state.candidateSummaryResult.Candidate_IssueId;
+        if (totalsVsMax) { // Value is compared to all other precincts
+          const totalVotesList = precinctDataItems.filter(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0);
+          const maxTotalVotes: number = Math.max(...totalVotesList);
+          if (maxTotalVotes > 0) {
+            const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
+            if (precinctData && precinctData.TotalVotes !== '-') {
+              const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
+              if (totalVotes > 0) {
+                return (totalVotes / maxTotalVotes);
+              }
             }
           }
-        }
-      } else { // Value is compared with other candidates in the selected precinct
-        const totalForAllCandidates = precinctDataItems.filter(p => p.ContestId === contestId && p.PrecinctCode === code).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0).reduce((x, y) => x + y, 0);
+        } else { // Value is compared with other candidates in the selected precinct
+          const totalForAllCandidates = precinctDataItems.filter(p => p.ContestId === contestId && p.PrecinctCode === code).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0).reduce((x, y) => x + y, 0);
 
-        if (totalForAllCandidates > 0) {
-          const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
-          if (precinctData && precinctData.TotalVotes !== '-') {
-            const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
-            if (totalVotes > 0) {
-              return (totalVotes / totalForAllCandidates);
+          if (totalForAllCandidates > 0) {
+            const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
+            if (precinctData && precinctData.TotalVotes !== '-') {
+              const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
+              if (totalVotes > 0) {
+                return (totalVotes / totalForAllCandidates);
+              }
             }
           }
         }
@@ -337,7 +367,9 @@ class MapView extends React.Component<{}, State> {
         ? feature.get('GEOID').slice(-2).replace(/^0+/, '')
         : ('kind' in feature.getProperties() && feature.get('kind') === 'county' ?
           feature.get('name')
-          : ('PRECINCT' in feature.getProperties() ? feature.get('PRECINCT') : '')));
+          : ('PRECINCT' in feature.getProperties() ? feature.get('PRECINCT')
+            : 'EPrecinct' in feature.getProperties() ? feature.get('EPrecinct').toString()
+              : 'DISTRICT' in feature.getProperties() ? feature.get('DISTRICT').toString() : '' )));
   }
 
   private styleFunction = (feature: Feature | FeatureRender) => {
@@ -428,11 +460,11 @@ class MapView extends React.Component<{}, State> {
       this.setState({ selectedCode: 'Florida', selectedFeatureType: StateWideType, showAllCandidates: false });
     }
     if (n === 6 && !this.state.electionDataSummaryLoaded) {
-      ElectionDataService.fetchSummaryResults((results) => {
+      ElectionDataService.fetchSummaryResults(this.state.selectedCounty, (results) => {
         console.log('Fetched summary results');
         this.setState({ electionDataSummary: results, electionDataSummaryLoaded: true, rerenderMap: true });
       });
-      ElectionDataService.fetchPrecinctResults((results => {
+      ElectionDataService.fetchPrecinctResults(this.state.selectedCounty, (results => {
         console.log('Fetched precinct results');
         this.setState({ electionDataPrecincts: results, electionDataPrecinctsLoaded: true, rerenderMap: true });
       }))
@@ -535,6 +567,27 @@ class MapView extends React.Component<{}, State> {
     }
   };
 
+  private selectCounty = (county: string) => {
+    this.setState({selectedCounty: county});
+    if (this.state.selectedCounty !== county) {
+      if (county === 'Hillsborough') {
+        this.setState({
+          selectedContestId: '17363' /* Dem Governor */,
+          selectedCandidateIssueId: '79631' /* Andrew Gillum */});
+      } else if (county === 'Brevard') {
+        this.setState({
+          selectedContestId: '18271' /* Dem Governor */,
+          selectedCandidateIssueId: '84128' /* Andrew Gillum */});
+      } else if (county === 'Polk') {
+        this.setState({
+          selectedContestId: '17248' /* Dem Governor */,
+          selectedCandidateIssueId: '79043' /* Andrew Gillum */});
+      }
+
+      this.setState({electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: []});
+    }
+  };
+
   private toggleMapSize = () => {
     this.setState({mapLarge: !this.state.mapLarge});
   };
@@ -602,11 +655,20 @@ class MapView extends React.Component<{}, State> {
                       </table>
                     </div>
                     <div>
-                    <select value={this.state.selectedCandidateIssueId} onChange={(e) => this.selectCandidate(e.target.value)}>
-                    {this.state.electionDataSummary.map(d =>
-                      <option key={d.Candidate_IssueId} value={d.Candidate_IssueId}>{d.Candidate_Issue} - {d.Contest}</option>
-                    )}
-                    </select>
+                      County:
+                      <select value={this.state.selectedCounty} onChange={(e) => this.selectCounty(e.target.value)}>
+                        <option key="Hillsborough" value="Hillsborough">Hillsborough</option>
+                        <option key="Brevard" value="Brevard">Brevard</option>
+                        <option key="Polk" value="Polk">Polk</option>
+                      </select>
+                    </div>
+                    <div>
+                      Candidate:
+                      <select value={this.state.selectedCandidateIssueId} onChange={(e) => this.selectCandidate(e.target.value)}>
+                        {this.state.electionDataSummary.map(d =>
+                          <option key={d.Candidate_IssueId} value={d.Candidate_IssueId}>{d.Candidate_Issue} - {d.Contest}</option>
+                        )}
+                      </select>
                     </div>
                   </span>
                   : ''}

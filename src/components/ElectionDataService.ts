@@ -33,8 +33,9 @@ declare type precinctResultsCallback = (results: PrecinctResults[]) => void;
 
 export default class ElectionDataService {
 
-  public static fetchSummaryResults = (responseHandler: summaryResultsCallback) => {
-    axios.get('downloaded/election_results/primary/FL/hillsborough/SummaryResults_2018_Primary.json').then((response) => {
+  public static fetchSummaryResults = (county: string, responseHandler: summaryResultsCallback) => {
+    const url = 'downloaded/election_results/primary/FL/' + county.toLowerCase() + '/SummaryResults_2018_Primary.json';
+    axios.get(url).then((response) => {
       const results: SummaryResults[] = response.data;
       responseHandler(results);
     }).catch((error) => {
@@ -43,8 +44,9 @@ export default class ElectionDataService {
     });
   };
 
-  public static fetchPrecinctResults = (responseHandler: precinctResultsCallback) => {
-    axios.get('downloaded/election_results/primary/FL/hillsborough/PrecinctResults_2018_Primary.json').then((response) => {
+  public static fetchPrecinctResults = (county: string, responseHandler: precinctResultsCallback) => {
+    const url = 'downloaded/election_results/primary/FL/' + county.toLowerCase() + '/PrecinctResults_2018_Primary.json';
+    axios.get(url).then((response) => {
       const results: PrecinctResults[] = response.data;
       responseHandler(results);
     }).catch((error) => {

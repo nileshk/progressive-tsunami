@@ -26,6 +26,12 @@ The boundary files are not included in this repository.  They must be downloaded
 
 * For both census KML files, modify all `id` attributes for `Placemark` elements to something unique.  I used the number from the `name` tags, but maybe the district name would have been a better choice.
 
+* CSV-to-JSON conversion with: https://www.npmjs.com/package/csv2json
+  * Example command: `csv2json SummaryResults_2018-08-31T14_55_09.csv SummaryResults_2018_Primary.json`
+  
+* Shapefiles to GeoJSON with gdal: https://www.gdal.org/
+  * Example command: `ogr2ogr -f GeoJSON -t_srs crs:84 fl_brevard_precincts.geojson Precincts_2016.shp`
+
 **TODO** Automate this process of downloading and modifying these files 
 
 #### Development ####

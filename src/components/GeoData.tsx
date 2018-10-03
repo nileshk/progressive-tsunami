@@ -1,3 +1,8 @@
+export interface LayerSource {
+  url: string;
+  name: string;
+}
+
 export const STATE_DISTRICT_KML_URLS: string[] = [
   'downloaded/census/state/fl/cb_2017_12_sldu_500k/cb_2017_12_sldu_500k_modified.kml' // Modified copy with ID's changed
 ];
@@ -107,9 +112,12 @@ export const COUNTY_URLS: string[] = [
 ];
 
 export const STATE_URLS: string[] = [
-  'downloaded/world.geo.json/countries/USA/FL.geo.json',
+  'downloaded/world.geo.json/countries/USA/FL.geo.json'
 ];
 
-export const PRECINCT_URLS: string[] = [
-  'downloaded/precincts/FL/hillsborough/fl_hillsborough_precincts.geojson',
+export const PRECINCT_URLS: LayerSource[] = [
+  {url: 'downloaded/precincts/FL/hillsborough/fl_hillsborough_precincts.geojson', name: 'Hillsborough'},
+  {url: 'downloaded/precincts/FL/brevard/fl_brevard_precincts.geojson', name: 'Brevard'},
+  {url: 'downloaded/precincts/FL/polk/fl_polk_precincts.geojson', name: 'Polk'}
+  //{url: 'downloaded/precincts/FL/broward/fl_broward_precincts.geojson', name: 'Broward'}
 ];
