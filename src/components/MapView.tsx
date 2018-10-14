@@ -679,7 +679,7 @@ class MapView extends React.Component<{}, State> {
               </div>
             </div>
           </div>
-          <footer>&copy; 2018 <a href="https://nileshk.com">Nilesh Kapadia</a></footer>
+          <footer>&copy; 2018 <a href="https://nileshk.com">Nilesh Kapadia</a> - Not authorized by any candidate or candidate committee.</footer>
         </div>
       </div>
     );
