@@ -83,6 +83,7 @@ interface State {
   turnout: any;
   turnoutPrecinctLoaded: boolean;
   countyTurnoutEnabled: boolean;
+  turnoutRelative: boolean;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -119,7 +120,8 @@ class MapView extends React.Component<{}, State> {
       turnoutAbsLoaded: false,
       turnoutAbs: [],
       turnoutEarlyLoaded: false,
-      turnoutEarly: []
+      turnoutEarly: [],
+      turnoutRelative: true
     };
   }
 
@@ -366,17 +368,22 @@ class MapView extends React.Component<{}, State> {
     if (code && this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
       const earlyVoted = this.state.turnoutEarly;
       const absVoted = this.state.turnoutAbs;
-
-      const maxDiffEarly = Math.max(...earlyVoted.map(d => Math.abs(d.TotalDem - d.TotalRep)));
-      const maxDiffMail = Math.max(...absVoted.map(d => Math.abs(d.TotalDem - d.TotalRep)));
-
       const early = earlyVoted.find(d => d.CountyName === code);
       const mail = absVoted.find(d => d.CountyName === code);
+
+      let comparisonValue: number = 0;
+      if (this.state.turnoutRelative) {
+        comparisonValue = (early.GrandTotal + mail.GrandTotal) / 2
+      } else {
+        const maxDiffEarly = Math.max(...earlyVoted.map(d => Math.abs(d.TotalDem - d.TotalRep)));
+        const maxDiffMail = Math.max(...absVoted.map(d => Math.abs(d.TotalDem - d.TotalRep)));
+        comparisonValue = (maxDiffEarly + maxDiffMail) / 4;
+      }
 
       if (early && mail) {
         const difference: number = (early.TotalDem + mail.TotalDem) - (early.TotalRep + mail.TotalRep);
         console.log(code + ' diff: ' + difference);
-        return [0.5 + difference / (maxDiffEarly), difference];
+        return [0.5 + difference / comparisonValue, difference];
       }
     }
     return [0, 0];
@@ -761,6 +768,13 @@ class MapView extends React.Component<{}, State> {
     this.setState({countyTurnoutEnabled});
   };
 
+  private turnoutRelativeChange = (event: any) => {
+    const target = event.target;
+    const turnoutRelative: boolean = target.type === 'checkbox' ? target.checked : target.value;
+    this.setState({turnoutRelative, rerenderMap: true});
+  };
+
+
   public render() {
     const mapClassName = this.state.mapLarge ? 'map-large' : 'map';
 
@@ -798,10 +812,13 @@ class MapView extends React.Component<{}, State> {
                 <button onClick={this.showAllCandidates}>Show All Candidates</button>
               </span>
               <span>
-                  <hr/>
-                  <h4>Current Turnout</h4>
-                  <input type="checkbox" checked={this.state.countyTurnoutEnabled} onChange={this.countyTurnoutChange}/>
-                  <small>For County</small>
+                <hr/>
+                <h4>Current Turnout</h4>
+                <input type="checkbox" checked={this.state.countyTurnoutEnabled} onChange={this.countyTurnoutChange}/>
+                <small>For County</small>
+                <br/>
+                <input type="checkbox" checked={this.state.turnoutRelative} onChange={this.turnoutRelativeChange}/>
+                <small>Relative</small>
                 {this.state.advancedMode ?
                   <>
                     <br/>
