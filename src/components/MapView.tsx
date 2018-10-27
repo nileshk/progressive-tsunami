@@ -26,6 +26,7 @@ import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCan
 import ElectionDataService, {PrecinctResults, SummaryResults} from "./ElectionDataService";
 import PrecinctInfo from "./PrecinctInfo";
 import {LayerSource} from "./GeoData";
+import TurnoutService from "./TurnoutService";
 // import * as ol from "ol";
 
 export const NationalCongressionalDistrictType = 'national';
@@ -35,6 +36,7 @@ export const CountyType = 'county';
 export const StateWideType = 'statewide';
 export const LocationType = 'location';
 export const PrecinctType = 'precinct';
+export const TurnoutPrecinctType = 'precinctturnout';
 
 // TODO Use enum instead of this
 const featureTypes = [
@@ -44,7 +46,8 @@ const featureTypes = [
   StateHouseDistrictType,
   StateWideType,
   LocationType,
-  PrecinctType
+  PrecinctType,
+  TurnoutPrecinctType
 ];
 
 interface State {
@@ -66,6 +69,10 @@ interface State {
   electionDataSummary: SummaryResults[];
   electionDataPrecinctsLoaded: boolean;
   electionDataPrecincts: PrecinctResults[];
+  turnoutEarlyLoaded: boolean;
+  turnoutEarly: any[];
+  turnoutAbsLoaded: boolean;
+  turnoutAbs: any[];
   selectedCounty: string;
   advancedMode: boolean;
   selectedCandidateIssueId: string;
@@ -73,6 +80,9 @@ interface State {
   candidateSummaryResult?: SummaryResults;
   rerenderMap: boolean;
   mapLarge: boolean;
+  turnout: any;
+  turnoutPrecinctLoaded: boolean;
+  countyTurnoutEnabled: boolean;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -84,11 +94,33 @@ class MapView extends React.Component<{}, State> {
 
   constructor(props: {}) {
     super(props);
-    this.state = {selectedCode: '', selectedType: CountyType, showAllCandidates: true, geolocationBrowserSupport: navigator.geolocation !== null, showCandidatesForYourLocation: false, districtLayers: [], precinctLayers: [], candidates: [], electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: [], advancedMode: false, selectedCandidateIssueId: '79631' /* Andrew Gillum */,
-    selectedContestId: '17363' /* Dem Governor */,
-    rerenderMap: false,
-    mapLarge: false,
-    selectedCounty: 'Hillsborough'};
+    this.state = {
+      selectedCode: '',
+      selectedType: CountyType,
+      showAllCandidates: true,
+      geolocationBrowserSupport: navigator.geolocation !== null,
+      showCandidatesForYourLocation: false,
+      districtLayers: [],
+      precinctLayers: [],
+      candidates: [],
+      electionDataSummaryLoaded: false,
+      electionDataSummary: [],
+      electionDataPrecinctsLoaded: false,
+      electionDataPrecincts: [],
+      advancedMode: false,
+      selectedCandidateIssueId: '79631' /* Andrew Gillum */,
+      selectedContestId: '17363' /* Dem Governor */,
+      rerenderMap: false,
+      mapLarge: false,
+      selectedCounty: 'Hillsborough',
+      turnout: {},
+      turnoutPrecinctLoaded: false,
+      countyTurnoutEnabled: false,
+      turnoutAbsLoaded: false,
+      turnoutAbs: [],
+      turnoutEarlyLoaded: false,
+      turnoutEarly: []
+    };
   }
 
   public componentDidMount() {
@@ -132,7 +164,7 @@ class MapView extends React.Component<{}, State> {
 
     makeLayer(GeoData.STATE_URLS, StateWideType, new GeoJSON(), this.stateStyleFunction);
     makeLayer(GeoData.DISTRICT_URLS, NationalCongressionalDistrictType, new GeoJSON(), this.styleFunction);
-    makeLayer(GeoData.COUNTY_URLS, CountyType, new GeoJSON(), this.styleFunction);
+    makeLayer(GeoData.COUNTY_URLS, CountyType, new GeoJSON(), this.countyStyleFunction);
     makeLayer(GeoData.STATE_DISTRICT_KML_URLS, StateSenateDistrictType, new KML({extractStyles: false}), this.styleFunction);
     makeLayer(GeoData.STATE_HOUSE_DISTRICT_KML_URLS, StateHouseDistrictType, new KML({extractStyles: false}), this.styleFunction);
     makeLayer(GeoData.PRECINCT_URLS, PrecinctType, new GeoJSON(), this.precinctStyleFunction, true, true);
@@ -167,9 +199,11 @@ class MapView extends React.Component<{}, State> {
 
   public componentDidUpdate(prevProps: {}, prevState: State) {
     if (this.state.selectedType !== prevState.selectedType && this.state.map) {
+      const selectedFeatureType = this.state.selectedType === TurnoutPrecinctType ? PrecinctType : this.state.selectedType;
+
       this.state.map.getLayers().forEach(mapLayer => {
         const visible = !('featureType' in mapLayer.getProperties())
-          || mapLayer.get('featureType') === this.state.selectedType;
+          || mapLayer.get('featureType') === selectedFeatureType;
         mapLayer.setVisible(visible);
       });
     }
@@ -183,21 +217,28 @@ class MapView extends React.Component<{}, State> {
     if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
       this.setState({rerenderMap: true});
     }
+
+    const reevaluateStyles = (layers: Layer[]) => {
+      layers.forEach(layer => {
+        if (layer.getVisible()) {
+          const source = layer.getSource();
+          if (source instanceof VectorSource) {
+            const features: Feature[] = source.getFeatures();
+            if (features) {
+              features.forEach(feature => feature.changed()); // HACK Workaround to reevaluate styleFunction
+            }
+          }
+        }
+      })
+    };
+
     if (this.state.rerenderMap) {
       console.log("RerenderMap");
       this.setState({rerenderMap: false});
-      if (this.state.precinctLayers) {
-        this.state.precinctLayers.forEach(layer => {
-          if (layer.getVisible()) {
-            const source = layer.getSource();
-            if (source instanceof VectorSource) {
-              const features: Feature[] = source.getFeatures();
-              if (features) {
-                features.forEach(feature => feature.changed()); // HACK Workaround to reevaluate styleFunction
-              }
-            }
-          }
-        })
+      if (this.state.selectedType === PrecinctType || this.state.selectedType === TurnoutPrecinctType) {
+        reevaluateStyles(this.state.precinctLayers);
+      } else {
+        reevaluateStyles(this.state.districtLayers);
       }
       if (this.state.map) {
         this.state.map.render();
@@ -318,42 +359,86 @@ class MapView extends React.Component<{}, State> {
     return layerName;
   }
 
+  private countyLevel = (feature: Feature | FeatureRender, code?: string): [number, number] => {
+    if (!code) {
+      code = MapView.codeFromFeature(feature);
+    }
+    if (code && this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
+      const earlyVoted = this.state.turnoutEarly;
+      const absVoted = this.state.turnoutAbs;
+
+      const maxDiffEarly = Math.max(...earlyVoted.map(d => Math.abs(d.TotalDem - d.TotalRep)));
+      const maxDiffMail = Math.max(...absVoted.map(d => Math.abs(d.TotalDem - d.TotalRep)));
+
+      const early = earlyVoted.find(d => d.CountyName === code);
+      const mail = absVoted.find(d => d.CountyName === code);
+
+      if (early && mail) {
+        const difference: number = (early.TotalDem + mail.TotalDem) - (early.TotalRep + mail.TotalRep);
+        console.log(code + ' diff: ' + difference);
+        return [0.5 + difference / (maxDiffEarly), difference];
+      }
+    }
+    return [0, 0];
+  };
+
   private precinctLevel = (feature: Feature | FeatureRender, code?: string): number => {
     const totalsVsMax = false;
 
     if (!code) {
       code = MapView.codeFromFeature(feature);
     }
-    if (code && this.state.electionDataPrecinctsLoaded && this.state.candidateSummaryResult) {
-      const countyName: string = this.getCountyFromPrecinctFeature(feature);
-      if (countyName && this.state.selectedCounty === countyName) {
-        const precinctDataItems = this.state.electionDataPrecincts;
-        const contestId = this.state.candidateSummaryResult.ContestId;
-        const candidateIssueId = this.state.candidateSummaryResult.Candidate_IssueId;
-        if (totalsVsMax) { // Value is compared to all other precincts
-          const totalVotesList = precinctDataItems.filter(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0);
-          const maxTotalVotes: number = Math.max(...totalVotesList);
-          if (maxTotalVotes > 0) {
-            const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
-            if (precinctData && precinctData.TotalVotes !== '-') {
-              const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
-              if (totalVotes > 0) {
-                return (totalVotes / maxTotalVotes);
+    if (code) {
+      if (this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded && this.state.candidateSummaryResult) {
+        const countyName: string = this.getCountyFromPrecinctFeature(feature);
+        if (countyName && this.state.selectedCounty === countyName) {
+          const precinctDataItems = this.state.electionDataPrecincts;
+          const contestId = this.state.candidateSummaryResult.ContestId;
+          const candidateIssueId = this.state.candidateSummaryResult.Candidate_IssueId;
+          if (totalsVsMax) { // Value is compared to all other precincts
+            const totalVotesList = precinctDataItems.filter(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0);
+            const maxTotalVotes: number = Math.max(...totalVotesList);
+            if (maxTotalVotes > 0) {
+              const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
+              if (precinctData && precinctData.TotalVotes !== '-') {
+                const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
+                if (totalVotes > 0) {
+                  return (totalVotes / maxTotalVotes);
+                }
               }
             }
-          }
-        } else { // Value is compared with other candidates in the selected precinct
-          const totalForAllCandidates = precinctDataItems.filter(p => p.ContestId === contestId && p.PrecinctCode === code).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0).reduce((x, y) => x + y, 0);
+          } else { // Value is compared with other candidates in the selected precinct
+            const totalForAllCandidates = precinctDataItems.filter(p => p.ContestId === contestId && p.PrecinctCode === code).map(p => p.TotalVotes !== '-' ? parseInt(p.TotalVotes, 10) : 0).reduce((x, y) => x + y, 0);
 
-          if (totalForAllCandidates > 0) {
-            const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
-            if (precinctData && precinctData.TotalVotes !== '-') {
-              const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
-              if (totalVotes > 0) {
-                return (totalVotes / totalForAllCandidates);
+            if (totalForAllCandidates > 0) {
+              const precinctData = precinctDataItems.find(p => p.ContestId === contestId && p.Candidate_IssueId === candidateIssueId && p.PrecinctCode === code);
+              if (precinctData && precinctData.TotalVotes !== '-') {
+                const totalVotes: number = parseInt(precinctData.TotalVotes, 10);
+                if (totalVotes > 0) {
+                  return (totalVotes / totalForAllCandidates);
+                }
               }
             }
           }
+        }
+      } else if (this.state.selectedType === TurnoutPrecinctType && this.state.turnoutPrecinctLoaded) {
+        const t = this.state.turnout;
+        const precinctData = code + '.0' in t.Turnout.PrecinctType ? t.Turnout.PrecinctType[code + '.0'] :
+          code + '.1' in t.Turnout.PrecinctType ? t.Turnout.PrecinctType[code + '.1'] :
+            code + '.2' in t.Turnout.PrecinctType ? t.Turnout.PrecinctType[code + '.2'] :
+              code + '.3' in t.Turnout.PrecinctType ? t.Turnout.PrecinctType[code + '.3'] : {};
+        if ('BallotTypeTotals' in precinctData) {
+          //const eligibleVoters = 'EligibleVoters' in precinctData ? precinctData.EligibleVoters : 0;
+          const totals = precinctData.BallotTypeTotals;
+          const mail = 'Mail' in totals ? totals.Mail : 0;
+          const provisional = 'Provisional' in totals ? totals.Provisional : 0;
+          const early = 'EarlyVoting' in totals ? totals.EarlyVoting : 0;
+          const total = (mail + provisional + early);
+          console.log(code);
+          console.log('Turnout: ' + total);
+          const val = total / 2000;
+          console.log('Val: ' + val);
+          return val;
         }
       }
     }
@@ -373,6 +458,69 @@ class MapView extends React.Component<{}, State> {
   }
 
   private styleFunction = (feature: Feature | FeatureRender) => {
+    const hasCandidates = MapView.candidateCount(feature) > 0;
+    return [
+      new Style({
+        fill: new Fill({
+          color: (hasCandidates ? TSUNAMI_COLOR : 'rgba(255,255,255,0.4)'),
+        }),
+        stroke: new Stroke({
+          color: '#3399CC',
+          width: 1.25
+        }),
+        text: new Text({
+          font: (hasCandidates ? ' bold ' : '') + '10px Calibri,sans-serif',
+          fill: new Fill({color: '#000'}),
+          stroke: new Stroke({
+            color: '#fff', width: 2
+          }),
+          text: MapView.featureLabel(feature)
+        })
+      })
+    ];
+  };
+
+  private countyStyleFunction = (feature: Feature | FeatureRender) => {
+    if (this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
+      const [level, difference] = this.countyLevel(feature);
+      let baseColor = 'rgba(0,0,255,';
+      if (level < 0.75) {
+        baseColor = 'rgba(0,255,0,';
+      }
+      if (level < 0.5) {
+        baseColor = 'rgba(255,255,0,';
+      }
+      if (level < 0.25) {
+        baseColor = 'rgba(255,0,0,';
+      }
+      //const color = baseColor + '1)';
+      const alpha = level < 0.5 ? 1.0 - (level * 2): (level - 0.5) * 2;
+      const alphaFinal = alpha >= 0.2 ? alpha : 0.2;
+      const color = baseColor + (alphaFinal).toString() + ')';
+
+      const code = MapView.codeFromFeature(feature);
+      const featureLabel: string = code + '\n' + (level < 0.5 ? '-' : '+') + (Math.abs(difference)).toString() + ' ' + (level < 0.5 ? 'R' : 'D');
+
+      return [
+        new Style({
+          fill: new Fill({
+            color,
+          }),
+          stroke: new Stroke({
+            color: '#3399CC',
+            width: 1.25
+          }),
+          text: new Text({
+            font: '10px Calibri,sans-serif',
+            fill: new Fill({color: '#000'}),
+            stroke: new Stroke({
+              color: '#fff', width: 2
+            }),
+            text: featureLabel
+          })
+        })
+      ];
+    }
     const hasCandidates = MapView.candidateCount(feature) > 0;
     return [
       new Style({
@@ -468,6 +616,11 @@ class MapView extends React.Component<{}, State> {
         console.log('Fetched precinct results');
         this.setState({ electionDataPrecincts: results, electionDataPrecinctsLoaded: true, rerenderMap: true });
       }))
+    }
+    if (n === 7) {
+      TurnoutService.fetchCounty(this.state.selectedCounty, (results) => {
+        this.setState({turnout: results, turnoutPrecinctLoaded: true});
+      })
     }
   };
 
@@ -592,16 +745,30 @@ class MapView extends React.Component<{}, State> {
     this.setState({mapLarge: !this.state.mapLarge});
   };
 
+  private countyTurnoutChange = (event: any) => {
+    const target = event.target;
+    const countyTurnoutEnabled: boolean = target.type === 'checkbox' ? target.checked : target.value;
+    if (!this.state.turnoutEarlyLoaded || !this.state.turnoutAbsLoaded) {
+      TurnoutService.fetchDaily((earlyResults) => {
+          this.setState({turnoutEarly: earlyResults, turnoutEarlyLoaded: true, rerenderMap: true});
+        },
+        (absResults) => {
+          this.setState({turnoutAbs: absResults, turnoutAbsLoaded: true, rerenderMap: true});
+        });
+    } else {
+      this.setState({rerenderMap: true});
+    }
+    this.setState({countyTurnoutEnabled});
+  };
+
   public render() {
     const mapClassName = this.state.mapLarge ? 'map-large' : 'map';
 
     return (
       <div>
-        {this.state.advancedMode ?
         <div onClick={(e) => this.toggleMapSize()}>
           <button>Toggle Map Size</button>
         </div>
-        : ''}
         <div>
           <div id="map" className={mapClassName}/>
         </div>
@@ -632,18 +799,31 @@ class MapView extends React.Component<{}, State> {
               </span>
               <span>
                   <hr/>
+                  <h4>Current Turnout</h4>
+                  <input type="checkbox" checked={this.state.countyTurnoutEnabled} onChange={this.countyTurnoutChange}/>
+                  <small>For County</small>
+                {this.state.advancedMode ?
+                  <>
+                    <br/>
+                    <input type="radio" name="featureType" value={TurnoutPrecinctType} checked={this.state.selectedType === TurnoutPrecinctType} onClick={(e) => this.changeType(7)}/>
+                    <span className="type-selection">By Precinct</span>
+                  </>
+                  : ''}
+              </span>
+              <br/>
+              <span>
+                  <hr/>
                   <h4>Primary Election Data</h4>
                   <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
                   <span className="type-selection">Precincts</span>
-                </span>
+              </span>
               <br/>
               <span className="sidebar-icon" onDoubleClick={(e) => this.enableAdvancedMode()}>🌊</span>
             </div>
             <div className="splitter"/>
             <div>
               <div className="main-content">
-                {this.state.selectedType === PrecinctType && this.state.electionDataSummaryLoaded ?
-                  <span>
+                {this.state.selectedType === PrecinctType || this.state.selectedType === TurnoutPrecinctType ?
                     <div className="legend">
                       <table>
                         <tr>
@@ -654,6 +834,10 @@ class MapView extends React.Component<{}, State> {
                         </tr>
                       </table>
                     </div>
+                  : ''}
+
+                {this.state.selectedType === PrecinctType && this.state.electionDataSummaryLoaded ?
+                  <span>
                     <div>
                       County:
                       <select value={this.state.selectedCounty} onChange={(e) => this.selectCounty(e.target.value)}>
