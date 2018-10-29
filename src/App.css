@@ -542,3 +542,9 @@ a:link, a:hover, a:visited .candidate-bullet-point {
   background-image: linear-gradient(to right, rgba(0, 0, 255, 0.7), rgba(0, 0, 255, 1));
   border: 1px solid rgba(0, 0, 255, 1);
 }
+
+.turnout-data {
+  text-align: left;
+  margin: 5px;
+  padding-bottom: 10px;
+}

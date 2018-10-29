@@ -84,6 +84,12 @@ interface State {
   turnoutPrecinctLoaded: boolean;
   countyTurnoutEnabled: boolean;
   turnoutRelative: boolean;
+  turnoutCountySelected: boolean;
+  countyDemTurnout: number;
+  countyRepTurnout: number;
+  countyNpaTurnout: number;
+  countyOtherTurnout: number;
+  countyTotalTurnout: number;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -116,12 +122,18 @@ class MapView extends React.Component<{}, State> {
       selectedCounty: 'Hillsborough',
       turnout: {},
       turnoutPrecinctLoaded: false,
-      countyTurnoutEnabled: false,
+      countyTurnoutEnabled: true,
       turnoutAbsLoaded: false,
       turnoutAbs: [],
       turnoutEarlyLoaded: false,
       turnoutEarly: [],
-      turnoutRelative: true
+      turnoutRelative: true,
+      turnoutCountySelected: false,
+      countyDemTurnout: 0,
+      countyRepTurnout: 0,
+      countyNpaTurnout: 0,
+      countyOtherTurnout: 0,
+      countyTotalTurnout: 0
     };
   }
 
@@ -189,6 +201,9 @@ class MapView extends React.Component<{}, State> {
      */
     setTimeout(() => {
       districtLayers.filter(layer => !('featureType' in layer.getProperties()) || layer.get('featureType') !== CountyType).forEach(layer => layer.setVisible(false));
+      if (this.state.countyTurnoutEnabled) {
+        this.countTurnoutChange(true);
+      }
     }, 2000);
 
     this.setState({map, districtLayers, precinctLayers});
@@ -279,6 +294,21 @@ class MapView extends React.Component<{}, State> {
           const showAllCandidates: boolean = false; // !(this.state.selectedType === StateWideType) && this.state.showAllCandidates && candidateCount === 0;
           // console.log('Code: ' + code);
           this.setState({selectedCode: code, selectedFeature: feature, selectedLayer: featureLayer, selectedFeatureType: this.state.selectedType, showAllCandidates});
+          if (this.state.selectedType === CountyType && this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
+            const absVoted = this.state.turnoutAbs;
+            const earlyVoted = this.state.turnoutEarly;
+            const early = earlyVoted.find(d => d.CountyName === code);
+            const mail = absVoted.find(d => d.CountyName === code);
+            this.setState({
+              turnoutCountySelected: true,
+              countyDemTurnout: early.TotalDem + mail.TotalDem,
+              countyRepTurnout: early.TotalRep + mail.TotalRep,
+              countyNpaTurnout: early.TotalNpa + mail.TotalNpa,
+              countyOtherTurnout: early.TotalOth + mail.TotalOth,
+              countyTotalTurnout: early.GrandTotal + mail.GrandTotal
+            })
+          }
+
           // console.log(code);
         //   try { // HACK Scroll down in landscape mode on clicking a feature with candidates so can see results
         //     if (window.matchMedia("(orientation: landscape)").matches && (window.innerWidth < 800 || window.innerHeight < 500) && window.pageYOffset < 150 && candidateCount > 0) {
@@ -755,6 +785,10 @@ class MapView extends React.Component<{}, State> {
   private countyTurnoutChange = (event: any) => {
     const target = event.target;
     const countyTurnoutEnabled: boolean = target.type === 'checkbox' ? target.checked : target.value;
+    this.countTurnoutChange(countyTurnoutEnabled);
+  };
+
+  private countTurnoutChange(countyTurnoutEnabled: boolean) {
     if (!this.state.turnoutEarlyLoaded || !this.state.turnoutAbsLoaded) {
       TurnoutService.fetchDaily((earlyResults) => {
           this.setState({turnoutEarly: earlyResults, turnoutEarlyLoaded: true, rerenderMap: true});
@@ -766,7 +800,7 @@ class MapView extends React.Component<{}, State> {
       this.setState({rerenderMap: true});
     }
     this.setState({countyTurnoutEnabled});
-  };
+  }
 
   private turnoutRelativeChange = (event: any) => {
     const target = event.target;
@@ -840,7 +874,7 @@ class MapView extends React.Component<{}, State> {
             <div className="splitter"/>
             <div>
               <div className="main-content">
-                {this.state.selectedType === PrecinctType || this.state.selectedType === TurnoutPrecinctType ?
+                {this.state.selectedType === PrecinctType ?
                     <div className="legend">
                       <table>
                         <tr>
@@ -851,6 +885,32 @@ class MapView extends React.Component<{}, State> {
                         </tr>
                       </table>
                     </div>
+                  : ''}
+                {(this.state.selectedType === CountyType && this.state.countyTurnoutEnabled) || this.state.selectedType === TurnoutPrecinctType ?
+                  <>
+                    <div className="legend">
+                      <table>
+                        <tr>
+                          <td><div className="legend-box percent25"/><span className="legend-text">REP🔥</span></td>
+                          <td><div className="legend-box percent50"/><span className="legend-text">REP</span></td>
+                          <td><div className="legend-box percent75"/><span className="legend-text">DEM</span></td>
+                          <td><div className="legend-box percent100"/><span className="legend-text">DEM🌊</span></td>
+                        </tr>
+                      </table>
+                    </div>
+                    {this.state.turnoutCountySelected ?
+                      <>
+                        <div className="turnout-data">
+                          Dem: {this.state.countyDemTurnout}&nbsp;
+                          Rep: {this.state.countyRepTurnout}&nbsp;
+                          Npa: {this.state.countyNpaTurnout}&nbsp;
+                          Other: {this.state.countyOtherTurnout}&nbsp;
+                          <strong>Total</strong>: {this.state.countyTotalTurnout}
+                        </div>
+                      </>
+                      : ''}
+                      <hr/>
+                  </>
                   : ''}
 
                 {this.state.selectedType === PrecinctType && this.state.electionDataSummaryLoaded ?
