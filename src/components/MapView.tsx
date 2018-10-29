@@ -90,6 +90,11 @@ interface State {
   countyNpaTurnout: number;
   countyOtherTurnout: number;
   countyTotalTurnout: number;
+  stateDemTurnout: number;
+  stateRepTurnout: number;
+  stateNpaTurnout: number;
+  stateOtherTurnout: number;
+  stateTotalTurnout: number;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -133,7 +138,12 @@ class MapView extends React.Component<{}, State> {
       countyRepTurnout: 0,
       countyNpaTurnout: 0,
       countyOtherTurnout: 0,
-      countyTotalTurnout: 0
+      countyTotalTurnout: 0,
+      stateDemTurnout: 0,
+      stateRepTurnout: 0,
+      stateNpaTurnout: 0,
+      stateOtherTurnout: 0,
+      stateTotalTurnout: 0
     };
   }
 
@@ -643,6 +653,21 @@ class MapView extends React.Component<{}, State> {
     if (n === 4) {
       // State-wide type, set code to Florida and disable show all
       this.setState({ selectedCode: 'Florida', selectedFeatureType: StateWideType, showAllCandidates: false });
+
+      if (this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
+        const absVoted = this.state.turnoutAbs;
+        const earlyVoted = this.state.turnoutEarly;
+        const early = earlyVoted.find(d => d.CountyName === "State Totals");
+        const mail = absVoted.find(d => d.CountyName === "State Totals");
+        this.setState({
+          stateDemTurnout: early.TotalDem + mail.TotalDem,
+          stateRepTurnout: early.TotalRep + mail.TotalRep,
+          stateNpaTurnout: early.TotalNpa + mail.TotalNpa,
+          stateOtherTurnout: early.TotalOth + mail.TotalOth,
+          stateTotalTurnout: early.GrandTotal + mail.GrandTotal
+        })
+      }
+
     }
     if (n === 6 && !this.state.electionDataSummaryLoaded) {
       ElectionDataService.fetchSummaryResults(this.state.selectedCounty, (results) => {
@@ -910,6 +935,18 @@ class MapView extends React.Component<{}, State> {
                       </>
                       : ''}
                       <hr/>
+                  </>
+                  : ''}
+
+                {this.state.selectedType === StateWideType && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded ?
+                  <>
+                    <div className="turnout-data">
+                      Dem: {this.state.stateDemTurnout}&nbsp;
+                      Rep: {this.state.stateRepTurnout}&nbsp;
+                      Npa: {this.state.stateNpaTurnout}&nbsp;
+                      Other: {this.state.stateOtherTurnout}&nbsp;
+                      <strong>Total</strong>: {this.state.stateTotalTurnout}
+                    </div>
                   </>
                   : ''}
 
