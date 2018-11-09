@@ -23,7 +23,7 @@ import * as React from 'react';
 import SelectionInfo from "./SelectionInfo";
 import * as GeoData from './GeoData';
 import {CandidateInfo, FloridaHouseCandidates, FloridaSenateCandidates, LocalCandidates, StateWideCandidates, USCongressionalCandidates} from "./CandidateData";
-import ElectionDataService, {PrecinctResults, SummaryResults} from "./ElectionDataService";
+import ElectionDataService, {PrecinctResults, StateResults, SummaryResults} from "./ElectionDataService";
 import PrecinctInfo from "./PrecinctInfo";
 import {LayerSource} from "./GeoData";
 import TurnoutService from "./TurnoutService";
@@ -37,6 +37,7 @@ export const StateWideType = 'statewide';
 export const LocationType = 'location';
 export const PrecinctType = 'precinct';
 export const TurnoutPrecinctType = 'precinctturnout';
+export const StateGeneralElectionResultsType = "stateGeneralElectionResults";
 
 // TODO Use enum instead of this
 const featureTypes = [
@@ -47,7 +48,8 @@ const featureTypes = [
   StateWideType,
   LocationType,
   PrecinctType,
-  TurnoutPrecinctType
+  TurnoutPrecinctType,
+  StateGeneralElectionResultsType
 ];
 
 interface State {
@@ -77,6 +79,9 @@ interface State {
   advancedMode: boolean;
   selectedCandidateIssueId: string;
   selectedContestId: string;
+  selectedRace: string;
+  selectedLastAndParty: string;
+  countyVotesRelative: boolean;
   candidateSummaryResult?: SummaryResults;
   rerenderMap: boolean;
   mapLarge: boolean;
@@ -95,6 +100,8 @@ interface State {
   stateNpaTurnout: number;
   stateOtherTurnout: number;
   stateTotalTurnout: number;
+  generalStateSummaryResults: StateResults[];
+  generalStateSummaryResultsLoaded: boolean;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -125,9 +132,11 @@ class MapView extends React.Component<{}, State> {
       rerenderMap: false,
       mapLarge: false,
       selectedCounty: 'Hillsborough',
+      selectedRace: '',
+      selectedLastAndParty: '',
       turnout: {},
       turnoutPrecinctLoaded: false,
-      countyTurnoutEnabled: true,
+      countyTurnoutEnabled: false,
       turnoutAbsLoaded: false,
       turnoutAbs: [],
       turnoutEarlyLoaded: false,
@@ -143,7 +152,10 @@ class MapView extends React.Component<{}, State> {
       stateRepTurnout: 0,
       stateNpaTurnout: 0,
       stateOtherTurnout: 0,
-      stateTotalTurnout: 0
+      stateTotalTurnout: 0,
+      generalStateSummaryResults: [],
+      generalStateSummaryResultsLoaded: false,
+      countyVotesRelative: true
     };
   }
 
@@ -226,7 +238,7 @@ class MapView extends React.Component<{}, State> {
 
   public componentDidUpdate(prevProps: {}, prevState: State) {
     if (this.state.selectedType !== prevState.selectedType && this.state.map) {
-      const selectedFeatureType = this.state.selectedType === TurnoutPrecinctType ? PrecinctType : this.state.selectedType;
+      const selectedFeatureType = this.state.selectedType === TurnoutPrecinctType ? PrecinctType : (this.state.selectedType === StateGeneralElectionResultsType ? CountyType : this.state.selectedType);
 
       this.state.map.getLayers().forEach(mapLayer => {
         const visible = !('featureType' in mapLayer.getProperties())
@@ -243,6 +255,10 @@ class MapView extends React.Component<{}, State> {
     }
     if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
       this.setState({rerenderMap: true});
+    }
+
+    if (this.state.selectedRace !== prevState.selectedRace) {
+      this.loadDefaultCandidateOrChoice();
     }
 
     const reevaluateStyles = (layers: Layer[]) => {
@@ -304,7 +320,7 @@ class MapView extends React.Component<{}, State> {
           const showAllCandidates: boolean = false; // !(this.state.selectedType === StateWideType) && this.state.showAllCandidates && candidateCount === 0;
           // console.log('Code: ' + code);
           this.setState({selectedCode: code, selectedFeature: feature, selectedLayer: featureLayer, selectedFeatureType: this.state.selectedType, showAllCandidates});
-          if (this.state.selectedType === CountyType && this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
+          if ((this.state.selectedType === CountyType || this.state.selectedType === StateGeneralElectionResultsType) && this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
             const absVoted = this.state.turnoutAbs;
             const earlyVoted = this.state.turnoutEarly;
             const early = earlyVoted.find(d => d.CountyName === code);
@@ -429,6 +445,22 @@ class MapView extends React.Component<{}, State> {
     return [0, 0];
   };
 
+  private countyStateGeneralLevel = (feature: Feature | FeatureRender, code?: string): [number, number] => {
+    if (!code) {
+      code = MapView.codeFromFeature(feature);
+    }
+    if (code && this.state.generalStateSummaryResultsLoaded && this.state.selectedRace !== '') {
+      const maxVotes = Math.max(...this.state.generalStateSummaryResults.filter(d => d.RaceName === this.state.selectedRace).map(d => d.CanVotes));
+      const sumVotes = this.state.generalStateSummaryResults.filter(d => d.RaceName === this.state.selectedRace && d.CountyName === code).map(d => d.CanVotes).reduce((x, y) => x + y, 0);
+
+      const result = this.state.generalStateSummaryResults.find(d => d.CountyName === code && d.RaceName === this.state.selectedRace && (d.CanNameLast + '%' + d.PartyCode === this.state.selectedLastAndParty));
+      if (result) {
+        return [result.CanVotes / (this.state.countyVotesRelative ? sumVotes : maxVotes), result.CanVotes];
+      }
+    }
+    return [0, 0];
+  };
+
   private precinctLevel = (feature: Feature | FeatureRender, code?: string): number => {
     const totalsVsMax = false;
 
@@ -528,7 +560,7 @@ class MapView extends React.Component<{}, State> {
   };
 
   private countyStyleFunction = (feature: Feature | FeatureRender) => {
-    if (this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded) {
+    if (this.state.countyTurnoutEnabled && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded && this.state.selectedType !== StateGeneralElectionResultsType) {
       const [level, difference] = this.countyLevel(feature);
       let baseColor = 'rgba(0,0,255,';
       if (level < 0.75) {
@@ -547,6 +579,42 @@ class MapView extends React.Component<{}, State> {
 
       const code = MapView.codeFromFeature(feature);
       const featureLabel: string = code + '\n' + (level < 0.5 ? '-' : '+') + (Math.abs(difference)).toString() + ' ' + (level < 0.5 ? 'R' : 'D');
+
+      return [
+        new Style({
+          fill: new Fill({
+            color,
+          }),
+          stroke: new Stroke({
+            color: '#3399CC',
+            width: 1.25
+          }),
+          text: new Text({
+            font: '10px Calibri,sans-serif',
+            fill: new Fill({color: '#000'}),
+            stroke: new Stroke({
+              color: '#fff', width: 2
+            }),
+            text: featureLabel
+          })
+        })
+      ];
+    } else if (this.state.selectedType === StateGeneralElectionResultsType && this.state.generalStateSummaryResultsLoaded) {
+      const code = MapView.codeFromFeature(feature);
+      const [level, votes] = this.countyStateGeneralLevel(feature, code);
+      let baseColor = 'rgba(0,0,255,';
+      if (level < 0.75) {
+        baseColor = 'rgba(0,255,0,';
+      }
+      if (level < 0.5) {
+        baseColor = 'rgba(255,255,0,';
+      }
+      if (level < 0.25) {
+        baseColor = 'rgba(255,0,0,';
+      }
+      const color = baseColor + (level).toString() + ')';
+
+      const featureLabel: string = code + '\n' + votes.toString();
 
       return [
         new Style({
@@ -684,6 +752,18 @@ class MapView extends React.Component<{}, State> {
         this.setState({turnout: results, turnoutPrecinctLoaded: true});
       })
     }
+    if (n === 8) {
+      ElectionDataService.fetch2018GeneralStateSummaryResults((results) => {
+        console.log('Fetched summary results');
+        this.setState({ generalStateSummaryResults: results, generalStateSummaryResultsLoaded: true, rerenderMap: true });
+
+        // Set the first item in the list
+        const races = Array.from((new Set(results.map(d => d.RaceName))).values());
+        if (races && races.length > 0) {
+          this.setState({selectedRace: races[0]});
+        }
+      });
+    }
   };
 
   private showAllCandidates = () => {
@@ -803,6 +883,26 @@ class MapView extends React.Component<{}, State> {
     }
   };
 
+  private selectRace = (race: string) => {
+    this.setState({selectedRace: race, rerenderMap: true });
+  };
+
+  private selectParty = (lastAndParty: string) => {
+    this.setState({selectedLastAndParty: lastAndParty, rerenderMap: true });
+  };
+
+  private loadDefaultCandidateOrChoice() {
+    const results = Array.from((new Set(this.state.generalStateSummaryResults
+      .filter(d => d.RaceName === this.state.selectedRace && d.PartyCode !== 'WRI').map(d => d.CanNameLast + '%' + d.PartyCode).values())))
+      .map(lastAndPartyCode => this.state.generalStateSummaryResults.find(d => d.RaceName === this.state.selectedRace && (d.CanNameLast + '%' + d.PartyCode === lastAndPartyCode)));
+    if (results && results.length > 0) {
+      const result = results[0];
+      if (result) {
+        this.setState({selectedLastAndParty: result.CanNameLast + '%' + result.PartyCode, rerenderMap: true});
+      }
+    }
+  }
+
   private toggleMapSize = () => {
     this.setState({mapLarge: !this.state.mapLarge});
   };
@@ -833,6 +933,11 @@ class MapView extends React.Component<{}, State> {
     this.setState({turnoutRelative, rerenderMap: true});
   };
 
+  private countyVotesRelativeChange = (event: any) => {
+    const target = event.target;
+    const countyVotesRelative: boolean = target.type === 'checkbox' ? target.checked : target.value;
+    this.setState({countyVotesRelative, rerenderMap: true});
+  };
 
   public render() {
     const mapClassName = this.state.mapLarge ? 'map-large' : 'map';
@@ -870,7 +975,8 @@ class MapView extends React.Component<{}, State> {
               <span className="type-selection">
                 <button onClick={this.showAllCandidates}>Show All Candidates</button>
               </span>
-              <span>
+              {this.state.countyTurnoutEnabled ?
+                <span>
                 <hr/>
                 <h4>Current Turnout</h4>
                 <input type="checkbox" checked={this.state.countyTurnoutEnabled} onChange={this.countyTurnoutChange}/>
@@ -878,18 +984,29 @@ class MapView extends React.Component<{}, State> {
                 <br/>
                 <input type="checkbox" checked={this.state.turnoutRelative} onChange={this.turnoutRelativeChange}/>
                 <small>Relative</small>
-                {this.state.advancedMode ?
-                  <>
-                    <br/>
-                    <input type="radio" name="featureType" value={TurnoutPrecinctType} checked={this.state.selectedType === TurnoutPrecinctType} onClick={(e) => this.changeType(7)}/>
-                    <span className="type-selection">By Precinct</span>
-                  </>
-                  : ''}
+                  {this.state.advancedMode ?
+                    <>
+                      <br/>
+                      <input type="radio" name="featureType" value={TurnoutPrecinctType} checked={this.state.selectedType === TurnoutPrecinctType} onClick={(e) => this.changeType(7)}/>
+                      <span className="type-selection">By Precinct</span>
+                    </>
+                    : ''}
+              </span>
+                : ''}
+              <br/>
+              <span>
+                  <hr/>
+                  <h4>General Election</h4>
+                  <input type="radio" name="featureType" value={StateGeneralElectionResultsType} checked={this.state.selectedType === StateGeneralElectionResultsType} onClick={(e) => this.changeType(8)}/>
+                  <span className="type-selection">By County</span>
+                <br/>
+                <input type="checkbox" checked={this.state.countyVotesRelative} onChange={this.countyVotesRelativeChange}/>
+                <small>Relative to County Total</small>
               </span>
               <br/>
               <span>
                   <hr/>
-                  <h4>Primary Election Data</h4>
+                  <h4>Primary Election</h4>
                   <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
                   <span className="type-selection">Precincts</span>
               </span>
@@ -899,7 +1016,7 @@ class MapView extends React.Component<{}, State> {
             <div className="splitter"/>
             <div>
               <div className="main-content">
-                {this.state.selectedType === PrecinctType ?
+                {this.state.selectedType === PrecinctType || this.state.selectedType === StateGeneralElectionResultsType ?
                     <div className="legend">
                       <table>
                         <tr>
@@ -912,25 +1029,30 @@ class MapView extends React.Component<{}, State> {
                     </div>
                   : ''}
                 {(this.state.selectedType === CountyType && this.state.countyTurnoutEnabled) || this.state.selectedType === TurnoutPrecinctType ?
+                  <div className="legend">
+                    <table>
+                      <tr>
+                        <td><div className="legend-box percent25"/><span className="legend-text">REP🔥</span></td>
+                        <td><div className="legend-box percent50"/><span className="legend-text">REP</span></td>
+                        <td><div className="legend-box percent75"/><span className="legend-text">DEM</span></td>
+                        <td><div className="legend-box percent100"/><span className="legend-text">DEM🌊</span></td>
+                      </tr>
+                    </table>
+                  </div>
+                  : ''}
+                {((this.state.selectedType === CountyType || this.state.selectedType === StateGeneralElectionResultsType) && this.state.countyTurnoutEnabled) || this.state.selectedType === TurnoutPrecinctType ?
                   <>
-                    <div className="legend">
-                      <table>
-                        <tr>
-                          <td><div className="legend-box percent25"/><span className="legend-text">REP🔥</span></td>
-                          <td><div className="legend-box percent50"/><span className="legend-text">REP</span></td>
-                          <td><div className="legend-box percent75"/><span className="legend-text">DEM</span></td>
-                          <td><div className="legend-box percent100"/><span className="legend-text">DEM🌊</span></td>
-                        </tr>
-                      </table>
-                    </div>
                     {this.state.turnoutCountySelected ?
                       <>
                         <div className="turnout-data">
+                          County Turnout:
                           Dem: {this.state.countyDemTurnout}&nbsp;
                           Rep: {this.state.countyRepTurnout}&nbsp;
                           Npa: {this.state.countyNpaTurnout}&nbsp;
                           Other: {this.state.countyOtherTurnout}&nbsp;
                           <strong>Total</strong>: {this.state.countyTotalTurnout}
+                          <br/>
+                          DEM/REP Turnout Difference: {(this.state.countyDemTurnout - this.state.countyRepTurnout) > 0 ? '+' : ''}{this.state.countyDemTurnout - this.state.countyRepTurnout}
                         </div>
                       </>
                       : ''}
@@ -938,14 +1060,49 @@ class MapView extends React.Component<{}, State> {
                   </>
                   : ''}
 
-                {this.state.selectedType === StateWideType && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded ?
+                {(this.state.selectedType === StateWideType) && this.state.turnoutAbsLoaded && this.state.turnoutEarlyLoaded ?
                   <>
                     <div className="turnout-data">
+                      State Turnout:
                       Dem: {this.state.stateDemTurnout}&nbsp;
                       Rep: {this.state.stateRepTurnout}&nbsp;
                       Npa: {this.state.stateNpaTurnout}&nbsp;
                       Other: {this.state.stateOtherTurnout}&nbsp;
                       <strong>Total</strong>: {this.state.stateTotalTurnout}
+                      <br/>
+                      DEM/REP Turnout Difference: {(this.state.stateDemTurnout - this.state.stateRepTurnout) > 0 ? '+' : ''}{this.state.stateDemTurnout - this.state.stateRepTurnout}
+                    </div>
+                  </>
+                  : ''}
+
+                {this.state.selectedType === StateGeneralElectionResultsType && this.state.generalStateSummaryResultsLoaded ?
+                  <>
+                    <div>
+                      Race:
+                      <select value={this.state.selectedRace} onChange={(e) => this.selectRace(e.target.value)}>
+                        {Array.from((new Set(this.state.generalStateSummaryResults.map(d => d.RaceName))).values()).map(d =>
+                          <option key={d} value={d}>{d}</option>
+                        )}
+                      </select>
+                    </div>
+                    <div>
+                      Party:
+                      <select value={this.state.selectedLastAndParty} onChange={(e) => this.selectParty(e.target.value)}>
+                        {Array.from((new Set(this.state.generalStateSummaryResults
+                          .filter(d => d.RaceName === this.state.selectedRace && d.PartyCode !== 'WRI').map(d => d.CanNameLast + '%' + d.PartyCode).values())))
+                          .map(lastAndPartyCode => this.state.generalStateSummaryResults.find(d => d.RaceName === this.state.selectedRace && (d.CanNameLast + '%' + d.PartyCode === lastAndPartyCode)))
+                          .map(d =>
+                            <>
+                              {
+                                d ?
+                                  <option key={d.CanNameLast + '%' + d.PartyCode} value={d.CanNameLast + '%' + d.PartyCode}>
+                                    {d.CanNameFirst !== 0 ? d.CanNameFirst : ''} {d.CanNameLast !== 0 ? d.CanNameLast + ' - ' : ''}{d.PartyCode}
+                                  </option>
+                                  : ''
+                              }
+                            </>
+                          )}
+                      </select>
                     </div>
                   </>
                   : ''}
