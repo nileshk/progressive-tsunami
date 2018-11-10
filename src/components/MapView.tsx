@@ -38,6 +38,7 @@ export const LocationType = 'location';
 export const PrecinctType = 'precinct';
 export const TurnoutPrecinctType = 'precinctturnout';
 export const StateGeneralElectionResultsType = "stateGeneralElectionResults";
+export const PrecinctGeneralElectionResultsType = 'PrecinctGeneralElectionResultsType';
 
 // TODO Use enum instead of this
 const featureTypes = [
@@ -49,7 +50,8 @@ const featureTypes = [
   LocationType,
   PrecinctType,
   TurnoutPrecinctType,
-  StateGeneralElectionResultsType
+  StateGeneralElectionResultsType,
+  PrecinctGeneralElectionResultsType
 ];
 
 interface State {
@@ -238,7 +240,7 @@ class MapView extends React.Component<{}, State> {
 
   public componentDidUpdate(prevProps: {}, prevState: State) {
     if (this.state.selectedType !== prevState.selectedType && this.state.map) {
-      const selectedFeatureType = this.state.selectedType === TurnoutPrecinctType ? PrecinctType : (this.state.selectedType === StateGeneralElectionResultsType ? CountyType : this.state.selectedType);
+      const selectedFeatureType = (this.state.selectedType === TurnoutPrecinctType || this.state.selectedType === PrecinctGeneralElectionResultsType)? PrecinctType : (this.state.selectedType === StateGeneralElectionResultsType ? CountyType : this.state.selectedType);
 
       this.state.map.getLayers().forEach(mapLayer => {
         const visible = !('featureType' in mapLayer.getProperties())
@@ -251,6 +253,8 @@ class MapView extends React.Component<{}, State> {
         this.selectCandidate(this.state.selectedCandidateIssueId);
       } else if (this.state.selectedType === PrecinctType) {
         this.changeType(6); // Refresh election data if county changed and election data not loaded
+      } else if (this.state.selectedType === PrecinctGeneralElectionResultsType) {
+        this.changeType(9); // Refresh election data if county changed and election data not loaded
       }
     }
     if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
@@ -278,7 +282,7 @@ class MapView extends React.Component<{}, State> {
     if (this.state.rerenderMap) {
       console.log("RerenderMap");
       this.setState({rerenderMap: false});
-      if (this.state.selectedType === PrecinctType || this.state.selectedType === TurnoutPrecinctType) {
+      if (this.state.selectedType === PrecinctType || this.state.selectedType === TurnoutPrecinctType || this.state.selectedType === PrecinctGeneralElectionResultsType) {
         reevaluateStyles(this.state.precinctLayers);
       } else {
         reevaluateStyles(this.state.districtLayers);
@@ -468,7 +472,7 @@ class MapView extends React.Component<{}, State> {
       code = MapView.codeFromFeature(feature);
     }
     if (code) {
-      if (this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded && this.state.candidateSummaryResult) {
+      if ((this.state.selectedType === PrecinctType || this.state.selectedType === PrecinctGeneralElectionResultsType) && this.state.electionDataPrecinctsLoaded && this.state.candidateSummaryResult) {
         const countyName: string = this.getCountyFromPrecinctFeature(feature);
         if (countyName && this.state.selectedCounty === countyName) {
           const precinctDataItems = this.state.electionDataPrecincts;
@@ -737,7 +741,13 @@ class MapView extends React.Component<{}, State> {
       }
 
     }
-    if (n === 6 && !this.state.electionDataSummaryLoaded) {
+    if (n === 6) { //&& !this.state.electionDataSummaryLoaded) {
+      this.setState({
+        electionDataSummaryLoaded: false,
+        electionDataPrecinctsLoaded: false,
+        selectedContestId: '17363' /* Dem Governor */,
+        selectedCandidateIssueId: '79631' /* Andrew Gillum */
+      });
       ElectionDataService.fetchSummaryResults(this.state.selectedCounty, (results) => {
         console.log('Fetched summary results');
         this.setState({ electionDataSummary: results, electionDataSummaryLoaded: true, rerenderMap: true });
@@ -764,6 +774,23 @@ class MapView extends React.Component<{}, State> {
         }
       });
     }
+    if (n === 9) { //} && !this.state.electionDataSummaryLoaded) {
+      this.setState({
+        electionDataSummaryLoaded: false,
+        electionDataPrecinctsLoaded: false,
+        selectedContestId: '20149' /* Governor */,
+        selectedCandidateIssueId: '92826' /* Andrew Gillum */
+      });
+      ElectionDataService.fetch2018GeneralSummaryResults(this.state.selectedCounty, (results) => {
+        console.log('Fetched summary results');
+        this.setState({ electionDataSummary: results, electionDataSummaryLoaded: true, rerenderMap: true });
+      });
+      ElectionDataService.fetch2018GeneralPrecinctResults(this.state.selectedCounty, (results => {
+        console.log('Fetched precinct results');
+        this.setState({ electionDataPrecincts: results, electionDataPrecinctsLoaded: true, rerenderMap: true });
+      }))
+    }
+
   };
 
   private showAllCandidates = () => {
@@ -866,9 +893,17 @@ class MapView extends React.Component<{}, State> {
     this.setState({selectedCounty: county});
     if (this.state.selectedCounty !== county) {
       if (county === 'Hillsborough') {
-        this.setState({
-          selectedContestId: '17363' /* Dem Governor */,
-          selectedCandidateIssueId: '79631' /* Andrew Gillum */});
+        if (this.state.selectedType === PrecinctType) {
+          this.setState({
+            selectedContestId: '17363' /* Dem Governor */,
+            selectedCandidateIssueId: '79631' /* Andrew Gillum */
+          });
+        } else if (this.state.selectedType === PrecinctGeneralElectionResultsType) {
+          this.setState({
+            selectedContestId: '20149' /* Governor */,
+            selectedCandidateIssueId: '92826' /* Andrew Gillum */
+          });
+        }
       } else if (county === 'Brevard') {
         this.setState({
           selectedContestId: '18271' /* Dem Governor */,
@@ -995,13 +1030,16 @@ class MapView extends React.Component<{}, State> {
                 : ''}
               <br/>
               <span>
-                  <hr/>
-                  <h4>General Election</h4>
-                  <input type="radio" name="featureType" value={StateGeneralElectionResultsType} checked={this.state.selectedType === StateGeneralElectionResultsType} onClick={(e) => this.changeType(8)}/>
-                  <span className="type-selection">By County</span>
+                <hr/>
+                <h4>General Election</h4>
+                <input type="radio" name="featureType" value={StateGeneralElectionResultsType} checked={this.state.selectedType === StateGeneralElectionResultsType} onClick={(e) => this.changeType(8)}/>
+                <span className="type-selection">By County</span>
                 <br/>
                 <input type="checkbox" checked={this.state.countyVotesRelative} onChange={this.countyVotesRelativeChange}/>
                 <small>Relative to County Total</small>
+                <br/>
+                <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctGeneralElectionResultsType} onClick={(e) => this.changeType(9)}/>
+                <span className="type-selection">Precincts</span>
               </span>
               <br/>
               <span>
@@ -1016,7 +1054,7 @@ class MapView extends React.Component<{}, State> {
             <div className="splitter"/>
             <div>
               <div className="main-content">
-                {this.state.selectedType === PrecinctType || this.state.selectedType === StateGeneralElectionResultsType ?
+                {(this.state.selectedType === PrecinctType || this.state.selectedType === PrecinctGeneralElectionResultsType) || this.state.selectedType === StateGeneralElectionResultsType ?
                     <div className="legend">
                       <table>
                         <tr>
@@ -1107,7 +1145,7 @@ class MapView extends React.Component<{}, State> {
                   </>
                   : ''}
 
-                {this.state.selectedType === PrecinctType && this.state.electionDataSummaryLoaded ?
+                {(this.state.selectedType === PrecinctType || this.state.selectedType === PrecinctGeneralElectionResultsType) && this.state.electionDataSummaryLoaded ?
                   <span>
                     <div>
                       County:
