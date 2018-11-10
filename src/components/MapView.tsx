@@ -451,9 +451,9 @@ class MapView extends React.Component<{}, State> {
     }
     if (code && this.state.generalStateSummaryResultsLoaded && this.state.selectedRace !== '') {
       const maxVotes = Math.max(...this.state.generalStateSummaryResults.filter(d => d.RaceName === this.state.selectedRace).map(d => d.CanVotes));
-      const sumVotes = this.state.generalStateSummaryResults.filter(d => d.RaceName === this.state.selectedRace && d.CountyName === code).map(d => d.CanVotes).reduce((x, y) => x + y, 0);
+      const sumVotes = this.state.generalStateSummaryResults.filter(d => d.RaceName === this.state.selectedRace && d.CountyName.toLowerCase() === (code === undefined ? '' : code.toLowerCase())).map(d => d.CanVotes).reduce((x, y) => x + y, 0);
 
-      const result = this.state.generalStateSummaryResults.find(d => d.CountyName === code && d.RaceName === this.state.selectedRace && (d.CanNameLast + '%' + d.PartyCode === this.state.selectedLastAndParty));
+      const result = this.state.generalStateSummaryResults.find(d => d.CountyName.toLowerCase() === (code === undefined ? '' : code.toLowerCase()) && d.RaceName === this.state.selectedRace && (d.CanNameLast + '%' + d.PartyCode === this.state.selectedLastAndParty));
       if (result) {
         return [result.CanVotes / (this.state.countyVotesRelative ? sumVotes : maxVotes), result.CanVotes];
       }
