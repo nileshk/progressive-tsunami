@@ -258,6 +258,7 @@ class MapView extends React.Component<{}, State> {
       }
     }
     if (this.state.selectedCandidateIssueId !== prevState.selectedCandidateIssueId) {
+      this.selectCandidate(this.state.selectedCandidateIssueId);
       this.setState({rerenderMap: true});
     }
 
@@ -905,13 +906,29 @@ class MapView extends React.Component<{}, State> {
           });
         }
       } else if (county === 'Brevard') {
-        this.setState({
-          selectedContestId: '18271' /* Dem Governor */,
-          selectedCandidateIssueId: '84128' /* Andrew Gillum */});
+        if (this.state.selectedType === PrecinctType) {
+          this.setState({
+            selectedContestId: '18271' /* Dem Governor */,
+            selectedCandidateIssueId: '84128' /* Andrew Gillum */
+          });
+        } else if (this.state.selectedType === PrecinctGeneralElectionResultsType) {
+          this.setState({
+            selectedContestId: '19132' /* Governor */,
+            selectedCandidateIssueId: '88386' /* Andrew Gillum */
+          });
+        }
       } else if (county === 'Polk') {
-        this.setState({
-          selectedContestId: '17248' /* Dem Governor */,
-          selectedCandidateIssueId: '79043' /* Andrew Gillum */});
+        if (this.state.selectedType === PrecinctType) {
+          this.setState({
+            selectedContestId: '17248' /* Dem Governor */,
+            selectedCandidateIssueId: '79043' /* Andrew Gillum */
+          });
+        } else if (this.state.selectedType === PrecinctGeneralElectionResultsType) {
+          this.setState({
+            selectedContestId: '19599' /* Governor */,
+            selectedCandidateIssueId: '90451' /* Andrew Gillum */
+          });
+        }
       }
 
       this.setState({electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: []});
@@ -1165,7 +1182,7 @@ class MapView extends React.Component<{}, State> {
                     </div>
                   </span>
                   : ''}
-                {this.state.selectedType === PrecinctType && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts} contestId={this.state.selectedContestId}/></span> :
+                {(this.state.selectedType === PrecinctType || this.state.selectedType === PrecinctGeneralElectionResultsType) && this.state.electionDataPrecinctsLoaded ? <span><PrecinctInfo code={this.state.selectedCode} precinctDataItems={this.state.electionDataPrecincts} contestId={this.state.selectedContestId}/></span> :
                   <SelectionInfo code={this.state.selectedCode} featureType={this.state.selectedFeatureType ? this.state.selectedFeatureType : this.state.selectedType}
                                  showAll={this.state.showAllCandidates} forCoordinates={this.state.showCandidatesForYourLocation} candidates={this.state.candidates}/>
                 }
