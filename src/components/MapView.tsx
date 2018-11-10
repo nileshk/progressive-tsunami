@@ -929,6 +929,18 @@ class MapView extends React.Component<{}, State> {
             selectedCandidateIssueId: '90451' /* Andrew Gillum */
           });
         }
+      } else if (county === 'Pasco') {
+        if (this.state.selectedType === PrecinctType) {
+          this.setState({
+            selectedContestId: '18645' /* Dem Governor */,
+            selectedCandidateIssueId: '86086' /* Andrew Gillum */
+          });
+        } else if (this.state.selectedType === PrecinctGeneralElectionResultsType) {
+          this.setState({
+            selectedContestId: '19816' /* Governor */,
+            selectedCandidateIssueId: '91382' /* Andrew Gillum */
+          });
+        }
       }
 
       this.setState({electionDataSummaryLoaded: false, electionDataSummary: [], electionDataPrecinctsLoaded: false, electionDataPrecincts: []});

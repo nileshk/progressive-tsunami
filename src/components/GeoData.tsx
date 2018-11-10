@@ -119,5 +119,6 @@ export const PRECINCT_URLS: LayerSource[] = [
   {url: 'downloaded/precincts/FL/hillsborough/fl_hillsborough_precincts.geojson', name: 'Hillsborough'},
   {url: 'downloaded/precincts/FL/brevard/fl_brevard_precincts.geojson', name: 'Brevard'},
   {url: 'downloaded/precincts/FL/polk/fl_polk_precincts.geojson', name: 'Polk'}
+  //{url: 'downloaded/precincts/FL/pasco/fl_pasco_precincts.geojson', name: 'Pasco'}
   //{url: 'downloaded/precincts/FL/broward/fl_broward_precincts.geojson', name: 'Broward'}
 ];
