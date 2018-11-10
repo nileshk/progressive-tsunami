@@ -84,6 +84,7 @@ interface State {
   selectedRace: string;
   selectedLastAndParty: string;
   countyVotesRelative: boolean;
+  precinctVotesRelative: boolean;
   candidateSummaryResult?: SummaryResults;
   rerenderMap: boolean;
   mapLarge: boolean;
@@ -157,7 +158,8 @@ class MapView extends React.Component<{}, State> {
       stateTotalTurnout: 0,
       generalStateSummaryResults: [],
       generalStateSummaryResultsLoaded: false,
-      countyVotesRelative: true
+      countyVotesRelative: true,
+      precinctVotesRelative: true
     };
   }
 
@@ -467,7 +469,7 @@ class MapView extends React.Component<{}, State> {
   };
 
   private precinctLevel = (feature: Feature | FeatureRender, code?: string): number => {
-    const totalsVsMax = false;
+    const totalsVsMax = !this.state.precinctVotesRelative;
 
     if (!code) {
       code = MapView.codeFromFeature(feature);
@@ -1003,6 +1005,12 @@ class MapView extends React.Component<{}, State> {
     this.setState({countyVotesRelative, rerenderMap: true});
   };
 
+  private precinctVotesRelativeChange = (event: any) => {
+    const target = event.target;
+    const precinctVotesRelative: boolean = target.type === 'checkbox' ? target.checked : target.value;
+    this.setState({precinctVotesRelative, rerenderMap: true});
+  };
+
   public render() {
     const mapClassName = this.state.mapLarge ? 'map-large' : 'map';
 
@@ -1069,13 +1077,19 @@ class MapView extends React.Component<{}, State> {
                 <br/>
                 <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctGeneralElectionResultsType} onClick={(e) => this.changeType(9)}/>
                 <span className="type-selection">Precincts</span>
+                <br/>
+                <input type="checkbox" checked={this.state.precinctVotesRelative} onChange={this.precinctVotesRelativeChange}/>
+                <small>Relative to Precinct Total</small>
               </span>
               <br/>
               <span>
-                  <hr/>
-                  <h4>Primary Election</h4>
-                  <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
-                  <span className="type-selection">Precincts</span>
+                <hr/>
+                <h4>Primary Election</h4>
+                <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctType} onClick={(e) => this.changeType(6)}/>
+                <span className="type-selection">Precincts</span>
+                <br/>
+                <input type="checkbox" checked={this.state.precinctVotesRelative} onChange={this.precinctVotesRelativeChange}/>
+                <small>Relative to Precinct Total</small>
               </span>
               <br/>
               <span className="sidebar-icon" onDoubleClick={(e) => this.enableAdvancedMode()}>🌊</span>
