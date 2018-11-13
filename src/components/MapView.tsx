@@ -105,6 +105,7 @@ interface State {
   stateTotalTurnout: number;
   generalStateSummaryResults: StateResults[];
   generalStateSummaryResultsLoaded: boolean;
+  generalElectionYear: string;
 }
 
 const DEFAULT_OPACITY: number = 1;
@@ -159,7 +160,8 @@ class MapView extends React.Component<{}, State> {
       generalStateSummaryResults: [],
       generalStateSummaryResultsLoaded: false,
       countyVotesRelative: true,
-      precinctVotesRelative: true
+      precinctVotesRelative: true,
+      generalElectionYear: '2018'
     };
   }
 
@@ -266,6 +268,10 @@ class MapView extends React.Component<{}, State> {
 
     if (this.state.selectedRace !== prevState.selectedRace) {
       this.loadDefaultCandidateOrChoice();
+    }
+
+    if (this.state.selectedType === StateGeneralElectionResultsType && this.state.generalElectionYear !== prevState.generalElectionYear) {
+      this.changeType(8);
     }
 
     const reevaluateStyles = (layers: Layer[]) => {
@@ -766,7 +772,7 @@ class MapView extends React.Component<{}, State> {
       })
     }
     if (n === 8) {
-      ElectionDataService.fetch2018GeneralStateSummaryResults((results) => {
+      const responseHandler = (results: StateResults[]) => {
         console.log('Fetched summary results');
         this.setState({ generalStateSummaryResults: results, generalStateSummaryResultsLoaded: true, rerenderMap: true });
 
@@ -775,7 +781,12 @@ class MapView extends React.Component<{}, State> {
         if (races && races.length > 0) {
           this.setState({selectedRace: races[0]});
         }
-      });
+      };
+      if (this.state.generalElectionYear === '2018') {
+        ElectionDataService.fetch2018GeneralStateSummaryResults(responseHandler);
+      } else if (this.state.generalElectionYear === '2016') {
+        ElectionDataService.fetch2016GeneralStateSummaryResults(responseHandler);
+      }
     }
     if (n === 9) { //} && !this.state.electionDataSummaryLoaded) {
       this.setState({
@@ -1011,6 +1022,10 @@ class MapView extends React.Component<{}, State> {
     this.setState({precinctVotesRelative, rerenderMap: true});
   };
 
+  private changeGeneralElectionYear = (year: string) => {
+    this.setState({generalElectionYear: year, rerenderMap: true});
+  };
+
   public render() {
     const mapClassName = this.state.mapLarge ? 'map-large' : 'map';
 
@@ -1074,6 +1089,10 @@ class MapView extends React.Component<{}, State> {
                 <br/>
                 <input type="checkbox" checked={this.state.countyVotesRelative} onChange={this.countyVotesRelativeChange}/>
                 <small>Relative to County Total</small>
+                <br/>
+                &nbsp;&nbsp;<input type="radio" name="generalElectionYear" value="2018" checked={this.state.generalElectionYear === '2018'} onClick={(e) => this.changeGeneralElectionYear('2018')}/>2018
+                <br/>
+                &nbsp;&nbsp;<input type="radio" name="generalElectionYear" value="2016" checked={this.state.generalElectionYear === '2016'} onClick={(e) => this.changeGeneralElectionYear('2016')}/>2016
                 <br/>
                 <input type="radio" name="featureType" value={PrecinctType} checked={this.state.selectedType === PrecinctGeneralElectionResultsType} onClick={(e) => this.changeType(9)}/>
                 <span className="type-selection">Precincts</span>

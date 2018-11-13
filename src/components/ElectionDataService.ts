@@ -107,4 +107,15 @@ export default class ElectionDataService {
     });
   };
 
+  public static fetch2016GeneralStateSummaryResults = (responseHandler: stateSummaryResultsCallback) => {
+    const url = 'downloaded/election_results/2016/general/FL/11082016Election.json';
+    axios.get(url).then((response) => {
+      const results: StateResults[] = response.data;
+      responseHandler(results);
+    }).catch((error) => {
+      console.log("ERROR:");
+      console.log(error);
+    });
+  };
+
 }
